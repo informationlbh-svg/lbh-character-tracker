@@ -1,0 +1,2201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Little Big Hearts · Character Growth Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & VARS ── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1B3A6B;--blue:#2563EB;--teal:#0E7490;--green:#15803D;
+  --amber:#B45309;--purple:#7C3AED;--rose:#BE123C;
+  --cream:#FAFAF8;--white:#FFFFFF;--ink:#1C2B3A;--muted:#64748B;
+  --border:#E2D9CE;--soft:#F5EFE6;
+  --em-c:#BE123C;--em-bg:#FEE2E8;
+  --dev-c:#B45309;--dev-bg:#FEF3C7;
+  --ach-c:#15803D;--ach-bg:#DCFCE7;
+  --sh:0 1px 12px rgba(27,58,107,.08);
+  --sh2:0 4px 24px rgba(27,58,107,.13);
+  --r:14px;
+}
+html,body{height:100%;font-family:'Nunito',sans-serif;color:var(--ink);background:var(--cream)}
+h1,h2,h3,h4{font-family:'Baloo 2',cursive}
+button{font-family:inherit;cursor:pointer;border:none;background:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none}
+.hidden{display:none!important}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:10px 18px;border-radius:10px;font-weight:700;font-size:14px;
+  font-family:'Baloo 2';transition:all .15s;cursor:pointer;border:none}
+.btn:active{transform:scale(.97)}
+.btn-navy{background:var(--navy);color:#fff;box-shadow:var(--sh)}
+.btn-navy:hover{background:#254e8a}
+.btn-blue{background:var(--blue);color:#fff;box-shadow:var(--sh)}
+.btn-blue:hover{background:#1d4ed8}
+.btn-green{background:var(--green);color:#fff;box-shadow:var(--sh)}
+.btn-amber{background:var(--amber);color:#fff;box-shadow:var(--sh)}
+.btn-ghost{background:var(--soft);color:var(--navy)}
+.btn-ghost:hover{background:#EDE4D8}
+.btn-danger{background:var(--em-bg);color:var(--em-c)}
+.btn-ai{background:linear-gradient(135deg,var(--purple),#9333EA);color:#fff;
+  box-shadow:0 2px 10px rgba(124,58,237,.35);font-size:12.5px;padding:7px 13px}
+.btn-sm{padding:7px 13px;font-size:12.5px;border-radius:9px}
+.btn-block{width:100%}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ── SETUP / LOGIN SCREENS ── */
+.fullscreen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:linear-gradient(160deg,#0C1F45 0%,#1a4a6e 100%)}
+.glass-card{background:#fff;border-radius:22px;box-shadow:var(--sh2);overflow:hidden;width:100%;max-width:520px}
+.card-hero{background:linear-gradient(135deg,var(--navy),var(--teal));
+  padding:28px 30px;color:#fff}
+.card-hero .logo{font-size:42px;margin-bottom:8px}
+.card-hero h1{font-size:22px;line-height:1.1;margin-bottom:4px}
+.card-hero p{opacity:.85;font-size:13.5px;line-height:1.5}
+.card-body{padding:26px 30px}
+.fld{margin-bottom:14px}
+.fld label{display:block;font-weight:800;font-size:12.5px;color:var(--navy);
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.fld input,.fld select,.fld textarea{width:100%;padding:11px 14px;
+  border:2px solid var(--border);border-radius:10px;font-size:14px;
+  background:#fff;transition:border-color .15s}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.fld textarea{resize:vertical;min-height:100px;line-height:1.5;font-family:monospace;font-size:12.5px}
+.err{color:var(--em-c);font-weight:700;font-size:13px;margin-top:8px;min-height:16px}
+.hint{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.5}
+.step{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
+.step:last-child{border-bottom:none}
+.step-n{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;
+  flex-shrink:0;margin-top:2px}
+.step-body h4{font-family:'Baloo 2';color:var(--navy);font-size:15px;margin-bottom:4px}
+.step-body p{font-size:13px;color:var(--muted);line-height:1.55}
+.step-body code{background:#EEF2FF;color:var(--blue);padding:1px 6px;border-radius:4px;font-size:11.5px}
+.rules-box{background:#F8FAFF;border:1px solid #C7D7F5;border-radius:8px;
+  padding:8px 10px;font-family:monospace;font-size:11px;line-height:1.6;margin-top:6px;
+  white-space:pre-wrap;color:#334155;user-select:all}
+
+/* ── APP SHELL ── */
+#app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{flex-shrink:0;background:#fff;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;padding:10px 18px;
+  box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.topbar .brand{display:flex;align-items:center;gap:9px;
+  font-family:'Baloo 2';font-weight:800;color:var(--navy);font-size:16px}
+.topbar .brand .ico{width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,var(--navy),var(--teal));
+  display:flex;align-items:center;justify-content:center;font-size:18px}
+.tb-spacer{flex:1}
+.user-pill{display:flex;align-items:center;gap:8px;
+  background:var(--soft);padding:5px 6px 5px 12px;border-radius:30px}
+.user-pill .uname{font-size:13px;font-weight:700;color:var(--navy)}
+.role-tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  color:#fff;padding:3px 8px;border-radius:20px}
+.role-tag.admin{background:var(--purple)}.role-tag.teacher{background:var(--teal)}
+.layout{flex:1;display:flex;overflow:hidden}
+.sidebar{width:210px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);
+  padding:12px 8px;overflow-y:auto}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 13px;
+  border-radius:11px;font-weight:700;font-size:13.5px;color:var(--ink);
+  margin-bottom:2px;text-align:left;transition:all .12s}
+.nav-btn .ico{font-size:16px;width:20px;text-align:center}
+.nav-btn:hover{background:var(--soft)}
+.nav-btn.active{background:var(--navy);color:#fff;box-shadow:var(--sh)}
+.main{flex:1;overflow-y:auto;padding:22px 26px}
+.mob-nav{display:none}
+
+/* ── PAGE COMPONENTS ── */
+.ph{margin-bottom:18px}
+.ph h2{font-size:24px;color:var(--navy)}
+.ph p{font-size:14px;color:var(--muted);margin-top:2px}
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);
+  padding:20px;margin-bottom:14px;border:1px solid rgba(226,217,206,.6)}
+.card h3{color:var(--navy);font-size:16px;margin-bottom:12px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{background:#fff;border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);
+  border-left:4px solid var(--blue)}
+.stat .n{font-family:'Baloo 2';font-size:34px;font-weight:800;color:var(--navy);line-height:1}
+.stat .l{color:var(--muted);font-weight:700;font-size:13px;margin-top:3px}
+.stat.g{border-left-color:var(--green)}.stat.a{border-left-color:var(--amber)}.stat.p{border-left-color:var(--purple)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+.lbl{display:block;font-weight:800;font-size:12px;color:var(--navy);
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.inp{width:100%;padding:10px 13px;border:2px solid var(--border);border-radius:10px;
+  font-size:14px;font-family:'Nunito';background:#fff;transition:border-color .15s}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.09)}
+textarea.inp{resize:vertical;min-height:62px;line-height:1.5}
+select.inp{cursor:pointer}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{background:var(--navy);color:#fff;font-family:'Baloo 2';font-weight:600;
+  padding:10px 12px;text-align:left;font-size:13px}
+.tbl th:first-child{border-radius:10px 0 0 0}.tbl th:last-child{border-radius:0 10px 0 0}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:nth-child(even) td{background:#FAFAF8}
+.empty{text-align:center;padding:36px 16px;color:var(--muted)}
+.empty .ico{font-size:40px;opacity:.4;margin-bottom:8px}
+
+/* level badges */
+.lv{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;
+  border-radius:20px;font-weight:800;font-size:12px}
+.lv.E{background:var(--em-bg);color:var(--em-c)}
+.lv.D{background:var(--dev-bg);color:var(--dev-c)}
+.lv.A{background:var(--ach-bg);color:var(--ach-c)}
+.lv-pick{padding:8px 12px;border-radius:9px;font-weight:800;font-size:12.5px;
+  border:2px solid var(--border);background:#fff;color:var(--muted);
+  cursor:pointer;transition:all .12s;font-family:'Nunito'}
+.lv-pick:hover{border-color:var(--blue)}
+.lv-pick.sel.E{background:var(--em-bg);color:var(--em-c);border-color:var(--em-c)}
+.lv-pick.sel.D{background:var(--dev-bg);color:var(--dev-c);border-color:var(--dev-c)}
+.lv-pick.sel.A{background:var(--ach-bg);color:var(--ach-c);border-color:var(--ach-c)}
+.yn{padding:8px 12px;border-radius:9px;font-weight:800;font-size:12.5px;
+  border:2px solid var(--border);background:#fff;color:var(--muted);
+  cursor:pointer;transition:all .12s;font-family:'Nunito'}
+.yn.y.sel{background:var(--ach-bg);color:var(--ach-c);border-color:var(--ach-c)}
+.yn.n.sel{background:var(--soft);color:var(--ink);border-color:var(--muted)}
+
+/* theme banner */
+.banner{border-radius:var(--r);padding:16px 20px;color:#fff;margin-bottom:14px;box-shadow:var(--sh)}
+.banner h3{color:#fff;font-size:19px;margin-bottom:2px}
+.banner .sub{opacity:.9;font-size:13px;font-weight:600}
+.banner .chip{display:inline-block;background:rgba(255,255,255,.2);
+  padding:7px 13px;border-radius:10px;font-weight:800;font-size:13.5px;margin-top:9px}
+
+/* week/day */
+.week-wrap{border:2px solid var(--border);border-radius:13px;padding:14px;margin-bottom:12px}
+.week-hdr{display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:8px;margin-bottom:11px;padding-bottom:9px;
+  border-bottom:1px dashed var(--border)}
+.week-title{font-family:'Baloo 2';font-weight:700;color:var(--navy);font-size:15px}
+.stamp-badge{background:var(--ach-bg);color:var(--ach-c);padding:4px 11px;
+  border-radius:20px;font-weight:800;font-size:12px}
+.day-row{background:#FAFAF8;border:1px solid var(--border);border-radius:11px;
+  padding:12px;margin-bottom:9px}
+.day-top{display:flex;align-items:center;justify-content:space-between;
+  gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.day-name{font-weight:800;color:var(--navy);font-size:14px;
+  display:flex;align-items:center;gap:7px}
+.date-box{padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:12px;width:132px;font-family:'Nunito';background:#fff}
+
+/* AI modal */
+.overlay{position:fixed;inset:0;background:rgba(0,20,50,.5);
+  backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;
+  justify-content:center;padding:16px}
+.modal{background:#fff;border-radius:18px;max-width:520px;width:100%;
+  max-height:85vh;overflow-y:auto;box-shadow:0 12px 50px rgba(0,0,0,.2)}
+.modal-hdr{padding:18px 22px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px}
+.ai-ico{width:40px;height:40px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,#6D28D9,#9333EA);
+  display:flex;align-items:center;justify-content:center;font-size:20px}
+.modal-hdr h3{font-size:16px;color:var(--navy)}
+.modal-body{padding:18px 22px}
+.ai-opt{border:2px solid var(--border);border-radius:12px;padding:13px 15px;
+  margin-bottom:10px;cursor:pointer;transition:all .14s;font-size:14px;line-height:1.55}
+.ai-opt:hover{border-color:#6D28D9;background:#FAF5FF}
+.ai-opt .use-lbl{display:block;font-size:11.5px;font-weight:800;color:#6D28D9;margin-top:6px}
+.spin{width:32px;height:32px;border:4px solid var(--soft);
+  border-top-color:#6D28D9;border-radius:50%;
+  animation:spin .75s linear infinite;margin:18px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* award card */
+.award-card{background:linear-gradient(160deg,#fff,#FAF5EC);
+  border:3px solid var(--navy);border-radius:18px;padding:22px;
+  max-width:700px;margin:0 auto;box-shadow:var(--sh2)}
+.award-hdr{text-align:center;padding-bottom:14px;
+  border-bottom:2px dashed #DDD4C4;margin-bottom:14px}
+.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px}
+.month-cell{border:2px solid var(--border);border-radius:11px;
+  padding:9px 7px;text-align:center}
+.month-cell .mn{font-family:'Baloo 2';font-weight:700;font-size:13px}
+.month-cell .me{font-size:21px;margin:3px 0}
+.month-cell .ms{font-size:11px;font-weight:800}
+.award-tier{text-align:center;background:var(--navy);color:#fff;
+  border-radius:13px;padding:14px}
+
+/* toast */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--navy);color:#fff;padding:11px 22px;border-radius:11px;
+  font-weight:700;font-size:13.5px;box-shadow:var(--sh2);z-index:500;
+  opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--green)}.toast.err{background:var(--em-c)}
+
+/* save indicator */
+.save-ind{font-size:12.5px;font-weight:700;color:var(--muted)}
+
+/* responsive */
+@media(max-width:820px){
+  .sidebar{display:none}
+  .main{padding:15px 13px 80px}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .g4.stats{grid-template-columns:1fr 1fr}
+  .month-grid{grid-template-columns:repeat(2,1fr)}
+  .mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;
+    background:#fff;border-top:1px solid var(--border);
+    z-index:100;padding:5px 2px;justify-content:space-around;
+    box-shadow:0 -3px 14px rgba(0,0,0,.07)}
+  .mob-nav button{display:flex;flex-direction:column;align-items:center;
+    gap:2px;font-size:10px;font-weight:800;color:var(--muted);
+    padding:5px 6px;border-radius:10px;flex:1}
+  .mob-nav button .ico{font-size:18px}
+  .mob-nav button.active{color:var(--navy);background:var(--soft)}
+  .ph h2{font-size:21px}
+}
+@media print{
+  .topbar,.sidebar,.mob-nav,.no-print{display:none!important}
+  .main{padding:0;overflow:visible}
+  body{background:#fff}
+  .card,.award-card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}
+  .main{overflow:visible!important}
+  #app{height:auto;overflow:visible}
+  .layout{overflow:visible}
+  @page{margin:12mm}
+}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setupView" class="fullscreen hidden" style="display:none">
+  <div class="glass-card" style="max-width:580px">
+    <div class="card-hero">
+      <div class="logo">💛</div>
+      <h1>Little Big Hearts — First-Time Setup</h1>
+      <p>This app uses Google Firebase (free) to store all data permanently in the cloud. Complete this setup once — it takes about 5 minutes.</p>
+    </div>
+    <div class="card-body" style="max-height:70vh;overflow-y:auto">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-body">
+          <h4>Create a Firebase project</h4>
+          <p>Go to <strong>console.firebase.google.com</strong> → sign in with Google → <strong>Add project</strong> → name it (e.g. <code>lbh-tracker</code>) → disable Analytics → <strong>Create project</strong>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-body">
+          <h4>Enable Firestore &amp; set security rules</h4>
+          <p>In your project: <strong>Build → Firestore Database → Create database → Production mode</strong>. Pick region <code>asia-southeast1</code>. Click Enable.</p>
+          <p style="margin-top:6px">Then go to <strong>Firestore → Rules</strong> tab, replace all text with the rules below, click <strong>Publish</strong>:</p>
+          <div class="rules-box">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-body">
+          <h4>Get your Firebase config &amp; paste it below</h4>
+          <p>In Firebase: <strong>Project Settings</strong> (gear ⚙ top-left) → scroll to <strong>Your apps</strong> → click <strong>&lt;/&gt; Web</strong> → register with any nickname → copy the <code>firebaseConfig</code> object.</p>
+          <div class="fld" style="margin-top:9px">
+            <textarea id="fb-raw" class="fld" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:10px;font-family:monospace;font-size:11.5px;min-height:120px;resize:vertical;background:#FAFAFA" placeholder='Paste your firebaseConfig here, e.g.:
+{
+  apiKey: "AIzaSy...",
+  authDomain: "lbh-tracker.firebaseapp.com",
+  projectId: "lbh-tracker",
+  storageBucket: "lbh-tracker.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abc123"
+}'></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">4</div>
+        <div class="step-body">
+          <h4>Set your admin password</h4>
+          <div class="g2" style="margin-top:6px">
+            <div class="fld"><label>Admin Password (min 6 chars)</label><input id="cfg-p1" type="password" placeholder="Choose a strong password"></div>
+            <div class="fld"><label>Confirm Password</label><input id="cfg-p2" type="password" placeholder="Repeat password"></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-navy btn-block" style="font-size:15px;padding:13px" onclick="doSetup()">🚀 Complete Setup &amp; Start Using the App</button>
+      <div class="err" id="setup-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginView" class="fullscreen hidden">
+  <div class="glass-card" style="max-width:400px">
+    <div class="card-hero" style="text-align:center">
+      <div class="logo">💛</div>
+      <h1>Little Big Hearts</h1>
+      <p>Character Growth Tracker · Staff Login</p>
+    </div>
+    <div class="card-body">
+      <div class="fld"><label>Username</label><input id="li-u" autocomplete="username" placeholder="Your username (e.g. admin)"></div>
+      <div class="fld"><label>Password</label><input id="li-p" type="password" autocomplete="current-password" placeholder="Your password"></div>
+      <button class="btn btn-navy btn-block" onclick="doLogin()">Sign In →</button>
+      <div class="err" id="li-err"></div>
+      <p class="hint" style="text-align:center;margin-top:12px">Admin: username <strong>admin</strong><br>Teachers: use the username &amp; password your admin gave you</p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="hidden">
+  <div class="topbar">
+    <div class="brand"><div class="ico">💛</div><span class="full-only">Little Big Hearts</span></div>
+    <div class="tb-spacer"></div>
+    <div class="user-pill">
+      <span class="uname" id="tb-name"></span>
+      <span class="role-tag" id="tb-role"></span>
+      <button class="btn btn-ghost btn-sm" style="margin-left:4px" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar"></nav>
+    <main class="main" id="main"></main>
+  </div>
+  <nav class="mob-nav" id="mobNav"></nav>
+</div>
+
+<!-- MODAL ROOT -->
+<div id="mroot"></div>
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE (loaded only when needed) -->
+<script>
+/* =================================================================
+   CURRICULUM DATA
+================================================================= */
+const CUR = {
+  1:{name:"January",  emoji:"⭐",theme:"Courage & New Beginnings",    dim:"Me & Myself",  color:"#1B3A6B",chars:{"2-3":"I Introduce Myself","4":"I Am Brave","5-6":"I Persevere"}},
+  2:{name:"February", emoji:"❤", theme:"Love, Kindness & Gratitude",   dim:"Me & Others",  color:"#15803D",chars:{"2-3":"I Give Hugs · I Say Thank You","4":"I Comfort Others","5-6":"I Cheer for Others"}},
+  3:{name:"March",    emoji:"🌿",theme:"Order & Responsibility",        dim:"Me & My World",color:"#B45309",chars:{"2-3":"I Tidy Up · I Push In My Chair","4":"I Care for Books · I Cooperate","5-6":"I Care for the Earth"}},
+  4:{name:"April",    emoji:"🐢",theme:"Patience & Self-Control",       dim:"Me & Myself",  color:"#1B3A6B",chars:{"2-3":"I Can Be Quiet · I Can Wait","4":"I Raise My Hand","5-6":"I Manage My Time"}},
+  5:{name:"May",      emoji:"🤝",theme:"Care, Helping & Empathy",       dim:"Me & Others",  color:"#15803D",chars:{"2-3":"I Help Friends · I Say Please","4":"I Comfort Others · I Say Please","5-6":"I Help New Kids"}},
+  6:{name:"June",     emoji:"🌈",theme:"Sharing, Teamwork & Cooperation",dim:"Me & My World",color:"#B45309",chars:{"2-3":"I Share","4":"I Cooperate","5-6":"I Solve Conflicts"}},
+  7:{name:"July",     emoji:"🕊", theme:"Honesty, Apology & Forgiveness",dim:"Me & Myself",  color:"#1B3A6B",chars:{"2-3":"I Say Sorry","4":"I Say Sorry · I Forgive","5-6":"I Apologise & Forgive"}},
+  8:{name:"August",   emoji:"🌟",theme:"Safety & Civic Pride",           dim:"Me & My World",color:"#B45309",chars:{"2-3":"I Push In My Chair · I Tidy Up","4":"I Line Up · I Stay Safe","5-6":"I Stay Safe"}},
+  9:{name:"September",emoji:"👂",theme:"Listening & Trustworthiness",   dim:"Me & My Future",color:"#5B2D8E",chars:{"2-3":"I Can Wait · I Can Be Quiet","4":"I Listen Well · I Keep Promises","5-6":"I Listen Well · I Keep Promises"}},
+ 10:{name:"October",  emoji:"🔬",theme:"Curiosity & Love of Learning",  dim:"Me & My Future",color:"#5B2D8E",chars:{"2-3":"I Ask Questions","4":"I Ask Questions","5-6":"I Ask Questions"}},
+ 11:{name:"November", emoji:"⏰",theme:"Responsibility & Self-Discipline",dim:"Me & Myself", color:"#1B3A6B",chars:{"2-3":"I Clear My Plate · I Wash My Hands","4":"I Keep Promises · I Clear My Plate","5-6":"I Manage My Time · I Persevere"}},
+ 12:{name:"December", emoji:"🎓",theme:"Gratitude, Leadership & New Horizons",dim:"Me & Others / Future",color:"#15803D",chars:{"2-3":"I Say Thank You · I Show Gratitude","4":"I Show Gratitude · I Raise My Hand","5-6":"I Lead · I Look Forward to School"}},
+};
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+const AGE_LABEL = {"2-3":"Age 2–3","4":"Age 4","5-6":"Age 5–6"};
+const LV = {
+  E:{label:"Emerging",  emoji:"🌱",stamps:1},
+  D:{label:"Developing",emoji:"🌿",stamps:2},
+  A:{label:"Achieved",  emoji:"🌟",stamps:3},
+};
+
+/* =================================================================
+   STATE
+================================================================= */
+let DB = null;
+let USER = null;
+let SEL = {sid:null, month:new Date().getMonth()+1, year:new Date().getFullYear()};
+let ASSESS = null;
+let SAVE_T = null;
+
+/* =================================================================
+   FIREBASE DYNAMIC LOADER
+================================================================= */
+const FB_SDK = "https://www.gstatic.com/firebasejs/10.12.0";
+let fbLoaded = false;
+let fbApp, fbDb;
+let firestoreAPI = {};
+
+async function loadFirebase(config) {
+  if (fbLoaded) return true;
+  return new Promise((resolve, reject) => {
+    // Load as module scripts
+    const s1 = document.createElement("script");
+    s1.type = "module";
+    s1.textContent = `
+      import { initializeApp } from "${FB_SDK}/firebase-app.js";
+      import {
+        getFirestore, doc, getDoc, setDoc, deleteDoc,
+        collection, getDocs, serverTimestamp
+      } from "${FB_SDK}/firebase-firestore.js";
+
+      const cfg = ${JSON.stringify(config)};
+      window._fbApp = initializeApp(cfg);
+      window._fbDb  = getFirestore(window._fbApp);
+      window._fbAPI = { doc, getDoc, setDoc, deleteDoc, collection, getDocs, serverTimestamp };
+      window._fbReady = true;
+      window.dispatchEvent(new Event("fb-ready"));
+    `;
+    document.head.appendChild(s1);
+
+    const timeout = setTimeout(() => reject(new Error("Firebase load timeout")), 12000);
+    window.addEventListener("fb-ready", () => {
+      clearTimeout(timeout);
+      fbDb = window._fbDb;
+      firestoreAPI = window._fbAPI;
+      fbLoaded = true;
+      resolve(true);
+    }, {once:true});
+  });
+}
+
+// Firestore CRUD helpers
+async function fsGet(col, id) {
+  try {
+    const {doc, getDoc} = firestoreAPI;
+    const snap = await getDoc(doc(fbDb, col, id));
+    return snap.exists() ? snap.data() : null;
+  } catch(e) { console.error("fsGet", e); return null; }
+}
+async function fsSet(col, id, data) {
+  try {
+    const {doc, setDoc, serverTimestamp} = firestoreAPI;
+    await setDoc(doc(fbDb, col, id), {...data, _ts: serverTimestamp()}, {merge:true});
+    return true;
+  } catch(e) { console.error("fsSet", e); return false; }
+}
+async function fsDel(col, id) {
+  try {
+    const {doc, deleteDoc} = firestoreAPI;
+    await deleteDoc(doc(fbDb, col, id));
+    return true;
+  } catch(e) { return false; }
+}
+async function fsAll(col) {
+  try {
+    const {collection, getDocs} = firestoreAPI;
+    const snap = await getDocs(collection(fbDb, col));
+    return snap.docs.map(d => ({id:d.id, ...d.data()}));
+  } catch(e) { return []; }
+}
+
+/* =================================================================
+   CONFIG STORAGE (localStorage — only for Firebase config, not data)
+================================================================= */
+/* Firebase config — hardcoded for lbh-character */
+const FIREBASE_CFG = {
+  apiKey: "AIzaSyBTTilZPlMPXUqx6tNG2XkPokN4-5o2Ot8",
+  authDomain: "lbh-character.firebaseapp.com",
+  projectId: "lbh-character",
+  storageBucket: "lbh-character.firebasestorage.app",
+  messagingSenderId: "523536571305",
+  appId: "1:523536571305:web:bc1c585ad9410f441f82b8"
+};
+
+
+/* =================================================================
+   BOOT
+================================================================= */
+async function boot() {
+  // Show login immediately — no setup screen needed
+  show("loginView");
+  // Connect Firebase in background
+  try {
+    await loadFirebase(FIREBASE_CFG);
+    // Try auto-resume session (stays logged in after page refresh)
+    const saved = sessionStorage.getItem("lbh_u");
+    if (saved) {
+      const acc = await fsGet("accounts", saved);
+      if (acc) { USER = acc; enterApp(); return; }
+    }
+  } catch(e) {
+    console.error("Firebase init:", e);
+  }
+}
+
+
+/* =================================================================
+   AUTH
+================================================================= */
+async function doLogin() {
+  const u = document.getElementById("li-u").value.trim().toLowerCase();
+  const p = document.getElementById("li-p").value;
+  const err = document.getElementById("li-err");
+  err.textContent = "";
+  if (!u || !p) { err.textContent = "Enter username and password."; return; }
+
+  if (!fbLoaded) {
+    err.textContent = "Still connecting to Firebase — please wait a moment and try again.";
+    return;
+  }
+  const acc = await fsGet("accounts", u);
+  if (!acc || acc.pwd !== p) { err.textContent = "Incorrect username or password."; return; }
+  USER = acc;
+  sessionStorage.setItem("lbh_u", u);
+  enterApp();
+}
+async function doLogout() {
+  sessionStorage.removeItem("lbh_u");
+  USER = null;
+  location.reload();
+}
+function enterApp() {
+  hide("loginView"); hide("setupView");
+  document.getElementById("app").classList.remove("hidden");
+  document.getElementById("tb-name").textContent = USER.name;
+  const r = document.getElementById("tb-role");
+  r.textContent = USER.role; r.className = "role-tag " + USER.role;
+  buildNav(); go("dashboard");
+}
+
+/* =================================================================
+   NAVIGATION
+================================================================= */
+function navItems() {
+  const base = [
+    {id:"dashboard",ico:"🏠",l:"Dashboard"},
+    {id:"students", ico:"🧒",l:"Students"},
+    {id:"assess",   ico:"📝",l:"Assessment"},
+    {id:"reports",  ico:"📊",l:"Reports"},
+    {id:"cards",    ico:"📅",l:"Stamp Chart"},
+  ];
+  if (USER.role === "admin") base.push({id:"accounts",ico:"👥",l:"Accounts"});
+  return base;
+}
+function buildNav() {
+  const items = navItems();
+  document.getElementById("sidebar").innerHTML = items.map(i =>
+    `<button class="nav-btn" data-v="${i.id}" onclick="go('${i.id}')">
+      <span class="ico">${i.ico}</span>${i.l}</button>`).join("");
+  document.getElementById("mobNav").innerHTML = items.slice(0,5).map(i =>
+    `<button data-v="${i.id}" onclick="go('${i.id}')">
+      <span class="ico">${i.ico}</span>${i.l}</button>`).join("");
+}
+function go(view) {
+  document.querySelectorAll("[data-v]").forEach(b =>
+    b.classList.toggle("active", b.dataset.v === view));
+  document.getElementById("main").scrollTop = 0;
+  window.scrollTo(0, 0);
+  const fn = {dashboard:renderDashboard,students:renderStudents,
+    assess:renderAssess,reports:renderReports,cards:renderCards,accounts:renderAccounts}[view];
+  if (fn) fn();
+}
+
+/* =================================================================
+   HELPERS
+================================================================= */
+const esc = s => (s||"").replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function show(id) {
+  ["loginView","app"].forEach(v => {
+    const el = document.getElementById(v);
+    if (el) el.classList.add("hidden");
+  });
+  const target = document.getElementById(id);
+  if (target) target.classList.remove("hidden");
+}
+function hide(id) { document.getElementById(id).classList.add("hidden"); }
+function toast(msg, type) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = "toast show " + (type||"");
+  setTimeout(() => t.className = "toast", 2600);
+}
+function setModal(html) {
+  document.getElementById("mroot").innerHTML = html
+    ? `<div class="overlay" onclick="if(event.target===this)closeModal()">
+        <div class="modal">${html}</div></div>` : "";
+}
+function closeModal() { setModal(""); }
+function loading(container) {
+  document.getElementById(container).innerHTML =
+    `<div style="text-align:center;padding:50px 20px">
+      <div class="spin" style="border-top-color:var(--navy)"></div>
+      <p style="color:var(--muted);margin-top:10px;font-weight:600">Loading…</p>
+    </div>`;
+}
+async function myStudents() {
+  const all = await fsAll("students");
+  if (USER.role === "admin") return all;
+  // Support both old (s.teacher string) and new (s.teachers array) formats
+  return all.filter(s => {
+    const arr = s.teachers || (s.teacher ? [s.teacher] : []);
+    return arr.includes(USER.username);
+  });
+}
+// Helper: get teachers array from student (handles old/new format)
+function getTeachersOf(s) {
+  if (Array.isArray(s.teachers)) return s.teachers;
+  if (s.teacher) return [s.teacher];
+  return [];
+}
+function emptyAssess() {
+  return {
+    weeks: [0,1,2,3].map(() => ({
+      days: DAYS.map(() => ({date:"",obs:"",level:"",stamp:""})),
+      level:"", key:"", follow:""
+    })),
+    concl: {level:"",evidence:"",growth:"",next:"",home:""}
+  };
+}
+const aKey = (sid, y, m) => `${sid}_${y}_${m}`;
+
+/* =================================================================
+   DASHBOARD
+================================================================= */
+async function renderDashboard() {
+  loading("main");
+  const studs = await myStudents();
+  const mo = SEL.month, yr = SEL.year, cur = CUR[mo];
+  let done = 0;
+  for (const s of studs) {
+    const a = await fsGet("assessments", aKey(s.id, yr, mo));
+    if (a && a.concl && a.concl.level) done++;
+  }
+  document.getElementById("main").innerHTML = `
+    <div class="ph"><h2>Welcome, ${esc(USER.name)}! 👋</h2>
+      <p>${cur.name} ${yr} — character growth overview.</p></div>
+    <div class="g4 stats" style="display:grid;gap:12px;margin-bottom:16px">
+      <div class="stat"><div class="n">${studs.length}</div><div class="l">Students</div></div>
+      <div class="stat g"><div class="n">${done}</div><div class="l">Assessed this month</div></div>
+      <div class="stat a"><div class="n">${studs.length-done}</div><div class="l">Pending</div></div>
+      <div class="stat p"><div class="n">${cur.emoji}</div><div class="l">${cur.name}</div></div>
+    </div>
+    <div class="banner" style="background:linear-gradient(135deg,${cur.color},${cur.color}bb)">
+      <div class="sub">${esc(cur.dim)}</div>
+      <h3>${cur.emoji} ${cur.name} — ${esc(cur.theme)}</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">
+        ${["2-3","4","5-6"].map(a=>`<div class="chip">${AGE_LABEL[a]}: ${esc(cur.chars[a])}</div>`).join("")}
+      </div>
+    </div>
+    <div class="card">
+      <h3>⚡ Quick Actions</h3>
+      <div class="row">
+        <button class="btn btn-navy" onclick="go('assess')">📝 Open Assessment</button>
+        <button class="btn btn-ghost" onclick="go('reports')">📊 Reports</button>
+        <button class="btn btn-ghost" onclick="go('cards')">🏅 Award Cards</button>
+      </div>
+    </div>`;
+}
+
+/* =================================================================
+   STUDENTS  (multi-teacher support)
+================================================================= */
+
+// Teacher checkbox picker HTML
+function teacherCheckboxes(allTeachers, selectedUsernames, prefix) {
+  if (!allTeachers.length) return '<div style="color:var(--muted);font-size:13px">— create teacher accounts first —</div>';
+  return allTeachers.map(t => {
+    const chk = selectedUsernames.includes(t.username) ? "checked" : "";
+    return `<label style="display:flex;align-items:center;gap:9px;padding:8px 12px;border:2px solid var(--border);
+      border-radius:10px;cursor:pointer;margin-bottom:7px;font-weight:700;font-size:14px;
+      background:${chk?"var(--achb)":"#fff"};transition:.14s"
+      onclick="toggleTeacherChk('${prefix}','${t.username}',this)">
+      <div id="${prefix}_chk_${t.username}" style="width:20px;height:20px;border-radius:6px;flex-shrink:0;
+        border:2px solid ${chk?"var(--ach-c)":"var(--border)"};background:${chk?"var(--ach-c)":"#fff"};
+        display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff">
+        ${chk?"✓":""}
+      </div>
+      <span>${esc(t.name)}</span>
+      <span style="font-size:11px;color:var(--muted);font-weight:500;margin-left:auto">${esc(t.username)}</span>
+    </label>`;
+  }).join("");
+}
+
+// Toggle a teacher checkbox in the picker
+window._teacherSels = {};
+function toggleTeacherChk(prefix, username, labelEl) {
+  if (!window._teacherSels[prefix]) window._teacherSels[prefix] = [];
+  const arr = window._teacherSels[prefix];
+  const idx = arr.indexOf(username);
+  const chkEl = document.getElementById(prefix + "_chk_" + username);
+  if (idx === -1) {
+    arr.push(username);
+    if (chkEl) { chkEl.textContent = "✓"; chkEl.style.background = "var(--ach-c)"; chkEl.style.borderColor = "var(--ach-c)"; }
+    labelEl.style.background = "var(--achb)";
+  } else {
+    arr.splice(idx, 1);
+    if (chkEl) { chkEl.textContent = ""; chkEl.style.background = "#fff"; chkEl.style.borderColor = "var(--border)"; }
+    labelEl.style.background = "#fff";
+  }
+}
+
+async function renderStudents() {
+  loading("main");
+  const studs = await myStudents();
+  const teachers = (await fsAll("accounts")).filter(a => a.role === "teacher");
+  const canEdit = USER.role === "admin";
+  window._teacherSels["add"] = [];  // reset add-form selection
+
+  document.getElementById("main").innerHTML = `
+    <div class="ph"><h2>🧒 Students</h2>
+      <p>${canEdit?"Manage all students and class assignments.":"Your assigned students."}</p></div>
+    ${canEdit ? `<div class="card no-print"><h3>➕ Add New Student</h3>
+      <div class="g2">
+        <div>
+          <div class="g2">
+            <div><label class="lbl">Child's Name</label><input class="inp" id="sn" placeholder="Full name"></div>
+            <div><label class="lbl">Class</label><input class="inp" id="sc" placeholder="e.g. K2 Bright Stars"></div>
+          </div>
+          <div class="g2" style="margin-top:10px">
+            <div><label class="lbl">Age Group</label><select class="inp" id="sa">
+              ${["2-3","4","5-6"].map(a=>`<option value="${a}">${AGE_LABEL[a]}</option>`).join("")}</select></div>
+            <div><label class="lbl">Academic Year</label><input class="inp" id="sy" type="number" value="${SEL.year}"></div>
+          </div>
+        </div>
+        <div>
+          <label class="lbl">Assign Teachers <span style="font-weight:500;color:var(--muted)">(tick all who teach this child)</span></label>
+          <div id="add-teacher-list" style="max-height:200px;overflow-y:auto;padding-right:4px">
+            ${teacherCheckboxes(teachers, [], "add")}
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-green" style="margin-top:14px" onclick="addStudent()">Add Student</button>
+    </div>` : ""}
+    <div class="card">
+      <h3>📋 Student List <span style="font-size:13px;color:var(--muted);font-weight:600">(${studs.length})</span></h3>
+      ${studs.length === 0 ? `<div class="empty"><div class="ico">📭</div><b>No students yet</b></div>` : `
+      <div style="overflow-x:auto"><table class="tbl"><thead><tr>
+        <th>Name</th><th>Class</th><th>Age</th><th>Year</th><th>Teachers Assigned</th><th></th>
+      </tr></thead><tbody>
+      ${studs.map(s => {
+        const tArr = getTeachersOf(s);
+        const tNames = tArr.map(u => {
+          const t = teachers.find(t=>t.username===u);
+          return t ? esc(t.name) : esc(u);
+        });
+        return `<tr>
+          <td><b>${esc(s.name)}</b></td>
+          <td>${esc(s.className||"")}</td>
+          <td><span class="lv D">${AGE_LABEL[s.ageGroup]||s.ageGroup}</span></td>
+          <td>${s.year||""}</td>
+          <td>${tNames.length
+            ? tNames.map(n=>`<span style="display:inline-block;background:var(--soft);color:var(--navy);
+                padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700;margin:2px 2px">${n}</span>`).join("")
+            : '<span style="color:var(--rose);font-size:12px">unassigned</span>'}</td>
+          <td style="text-align:right;white-space:nowrap">
+            <button class="btn btn-ghost btn-sm" onclick="jumpAssess('${s.id}')">📝</button>
+            ${canEdit ? `<button class="btn btn-blue btn-sm" onclick="editTeachers('${s.id}')">👥</button>` : ""}
+            ${canEdit ? `<button class="btn btn-danger btn-sm" onclick="delStudent('${s.id}')">🗑</button>` : ""}
+          </td></tr>`;
+      }).join("")}
+      </tbody></table></div>
+      ${canEdit ? `<div style="font-size:12px;color:var(--muted);margin-top:10px">
+        📝 = Open assessment &nbsp;·&nbsp; 👥 = Edit assigned teachers &nbsp;·&nbsp; 🗑 = Remove student
+      </div>` : ""}`}
+    </div>`;
+}
+
+async function addStudent() {
+  const name      = document.getElementById("sn").value.trim();
+  const className = document.getElementById("sc").value.trim();
+  const ageGroup  = document.getElementById("sa").value;
+  const year      = parseInt(document.getElementById("sy").value) || SEL.year;
+  const teachers  = window._teacherSels["add"] || [];
+  if (!name) { toast("Enter child's name","err"); return; }
+  const id = "s" + Date.now();
+  const ok = await fsSet("students", id, {id, name, className, ageGroup, year, teachers});
+  if (ok) { toast("Student added ✓","ok"); renderStudents(); }
+  else toast("Save failed","err");
+}
+
+async function editTeachers(sid) {
+  const allTeachers = (await fsAll("accounts")).filter(a => a.role === "teacher");
+  const stud = (await fsAll("students")).find(s => s.id === sid);
+  if (!stud) return;
+  const current = getTeachersOf(stud);
+  window._teacherSels["edit"] = [...current];  // copy current selection
+
+  setModal(`
+    <div class="modal-hdr">
+      <div class="ai-ico" style="background:linear-gradient(135deg,var(--navy),var(--teal))">👥</div>
+      <div>
+        <h3>Edit Teacher Assignments</h3>
+        <div style="font-size:12px;color:var(--muted)"><b>${esc(stud.name)}</b> — ${esc(stud.className||"")} · ${AGE_LABEL[stud.ageGroup]}</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <label class="lbl" style="margin-bottom:8px">Tick all teachers who teach this child:</label>
+      <div id="edit-teacher-list" style="max-height:260px;overflow-y:auto;padding-right:4px">
+        ${teacherCheckboxes(allTeachers, current, "edit")}
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn btn-green" onclick="saveTeachers('${sid}')">💾 Save</button>
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>`);
+}
+
+async function saveTeachers(sid) {
+  const teachers = window._teacherSels["edit"] || [];
+  const ok = await fsSet("students", sid, {teachers});
+  if (ok) { toast("Teacher assignments saved ✓","ok"); closeModal(); renderStudents(); }
+  else toast("Save failed","err");
+}
+
+async function delStudent(id) {
+  if (!confirm("Remove this student?")) return;
+  await fsDel("students", id);
+  toast("Removed","ok"); renderStudents();
+}
+function jumpAssess(id) { SEL.sid = id; go("assess"); }
+
+/* =================================================================
+   ASSESSMENT
+================================================================= */
+async function renderAssess() {
+  loading("main");
+  const studs = await myStudents();
+  if (!studs.length) {
+    document.getElementById("main").innerHTML =
+      `<div class="ph"><h2>📝 Assessment</h2></div>
+       <div class="card"><div class="empty"><div class="ico">🧒</div>No students available.</div></div>`;
+    return;
+  }
+  if (!SEL.sid || !studs.find(s=>s.id===SEL.sid)) SEL.sid = studs[0].id;
+  const stud = studs.find(s => s.id === SEL.sid);
+  const mo = SEL.month, yr = SEL.year, cur = CUR[mo];
+  const raw = await fsGet("assessments", aKey(stud.id, yr, mo));
+  ASSESS = (raw && raw.weeks) ? raw : emptyAssess();
+  window._curStud = stud;
+  const target = cur.chars[stud.ageGroup];
+
+  document.getElementById("main").innerHTML = `
+    <div class="ph row between no-print">
+      <div><h2>📝 Assessment</h2><p>Daily → Weekly → Monthly</p></div>
+      <span class="save-ind" id="saveInd"></span>
+    </div>
+    <div class="card no-print"><div class="g3">
+      <div><label class="lbl">Student</label>
+        <select class="inp" id="sel-s" onchange="chgStud(this.value)">
+          ${studs.map(s=>`<option value="${s.id}" ${s.id===stud.id?"selected":""}>${esc(s.name)} — ${esc(s.className||"")}</option>`).join("")}
+        </select></div>
+      <div><label class="lbl">Month</label>
+        <select class="inp" id="sel-m" onchange="chgMonth(+this.value)">
+          ${Object.keys(CUR).map(k=>`<option value="${k}" ${+k===mo?"selected":""}>${CUR[k].emoji} ${CUR[k].name}</option>`).join("")}
+        </select></div>
+      <div><label class="lbl">Year</label>
+        <input class="inp" type="number" id="sel-y" value="${yr}" onchange="chgYear(+this.value)"></div>
+    </div></div>
+
+    <div class="banner" style="background:linear-gradient(135deg,${cur.color},${cur.color}aa)">
+      <div class="sub">${esc(stud.name)} · ${AGE_LABEL[stud.ageGroup]} · ${esc(stud.className||"")}</div>
+      <h3>${cur.emoji} ${cur.name} — ${esc(cur.theme)}</h3>
+      <div class="chip">🎯 Target: ${esc(target)}</div>
+    </div>
+
+    <div class="card no-print" style="background:#FAFAF6">
+      <h3 style="cursor:pointer" onclick="document.getElementById('rub').classList.toggle('hidden')">
+        📖 Rubric Quick Reference <small style="font-weight:500;color:var(--muted);font-size:12px">(tap to show/hide)</small></h3>
+      <div id="rub" class="g3">
+        ${["E","D","A"].map(l=>`
+          <div style="border:2px solid var(--${l==="E"?"em-c":l==="D"?"dev-c":"ach-c"});border-radius:11px;padding:12px">
+            <div class="lv ${l}" style="margin-bottom:6px">${LV[l].emoji} ${LV[l].label}</div>
+            <div style="font-size:13px;color:var(--muted)">→ <b>${LV[l].stamps} stamp(s)</b></div>
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🗓 Daily Observation Log</h3>
+      <p style="font-size:13px;color:var(--muted);margin:-8px 0 12px">One specific behaviour per day. Stuck? Tap <b style="color:#6D28D9">✨ Help me write</b>.</p>
+      <div id="weeks"></div>
+    </div>
+
+    <div class="card">
+      <h3>🏁 Monthly Conclusion &amp; Stamp Decision</h3>
+      <div class="g2">
+        <div>
+          <label class="lbl">Final Level</label>
+          <div class="row" id="cLv">${mkLvPicker("concl", ASSESS.concl.level)}</div>
+          <div id="stOut" style="margin-top:8px;font-weight:800;font-size:13.5px;color:var(--ach-c)"></div>
+        </div>
+        <div>
+          <label class="lbl">Total Stamp-Days This Month</label>
+          <div id="totalSt" style="font-family:'Baloo 2';font-size:40px;font-weight:800;color:var(--navy)"></div>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <label class="lbl">Evidence (2–3 specific moments)</label>
+        <textarea class="inp" id="c-ev" oninput="updC('evidence',this.value)">${esc(ASSESS.concl.evidence||"")}</textarea>
+      </div>
+      <div style="margin-top:11px">
+        <label class="lbl">Growth Highlight</label>
+        <textarea class="inp" id="c-gr" oninput="updC('growth',this.value)">${esc(ASSESS.concl.growth||"")}</textarea>
+      </div>
+      <div style="margin-top:11px">
+        <label class="lbl">Next Month Focus</label>
+        <textarea class="inp" id="c-nx" oninput="updC('next',this.value)">${esc(ASSESS.concl.next||"")}</textarea>
+      </div>
+      <div style="margin-top:11px">
+        <label class="lbl">💌 Home Message for Parents
+          <button class="btn btn-ai btn-sm" style="margin-left:8px" onclick="aiHome()">✨ Help me write</button>
+        </label>
+        <textarea class="inp" id="c-hm" oninput="updC('home',this.value)">${esc(ASSESS.concl.home||"")}</textarea>
+      </div>
+    </div>
+
+    <div class="row no-print" style="margin-bottom:32px">
+      <button class="btn btn-green" onclick="saveNow(true)">💾 Save to Cloud</button>
+      <button class="btn btn-ghost" onclick="go('reports')">📊 Reports</button>
+    </div>`;
+
+  renderWeeks(); recalc();
+}
+
+function mkLvPicker(scope, val) {
+  return ["E","D","A"].map(l =>
+    `<button class="lv-pick ${l} ${val===l?"sel":""}" onclick="pickLv('${scope}','${l}')">${LV[l].emoji} ${LV[l].label}</button>`
+  ).join(" ");
+}
+function renderWeeks() {
+  document.getElementById("weeks").innerHTML = ASSESS.weeks.map((wk, wi) => {
+    const st = wk.days.filter(d => d.stamp === "Y").length;
+    return `<div class="week-wrap">
+      <div class="week-hdr">
+        <span class="week-title">Week ${wi+1}</span>
+        <span class="stamp-badge">⭐ ${st}/5 stamps</span>
+      </div>
+      ${wk.days.map((d, di) => `
+        <div class="day-row">
+          <div class="day-top">
+            <span class="day-name">${["🌙","🌤","☀️","🌥","🎉"][di]} ${DAYS[di]}</span>
+            <input class="date-box" type="date" value="${esc(d.date)}" onchange="uDay(${wi},${di},'date',this.value)">
+          </div>
+          <textarea class="inp" placeholder="What did you see this child do today?" oninput="uDay(${wi},${di},'obs',this.value)">${esc(d.obs)}</textarea>
+          <button class="btn btn-ai btn-sm" onclick="aiObs(${wi},${di})">✨ Help me write</button>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;align-items:flex-end">
+            <div>
+              <div class="lbl" style="margin-bottom:5px">Level</div>
+              <div style="display:flex;gap:5px">
+                ${["E","D","A"].map(l=>`<button class="lv-pick ${l} ${d.level===l?"sel":""}" onclick="uDay(${wi},${di},'level','${l}')">${LV[l].emoji}</button>`).join("")}
+              </div>
+            </div>
+            <div>
+              <div class="lbl" style="margin-bottom:5px">Stamp?</div>
+              <div style="display:flex;gap:5px">
+                <button class="yn y ${d.stamp==="Y"?"sel":""}" onclick="uDay(${wi},${di},'stamp','Y')">✓ Yes</button>
+                <button class="yn n ${d.stamp==="N"?"sel":""}" onclick="uDay(${wi},${di},'stamp','N')">✗ No</button>
+              </div>
+            </div>
+          </div>
+        </div>`).join("")}
+      <div style="border-top:1px dashed var(--border);padding-top:12px;margin-top:4px">
+        <div class="g2">
+          <div>
+            <label class="lbl">Week ${wi+1} Overall Level</label>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              ${["E","D","A"].map(l=>`<button class="lv-pick ${l} ${wk.level===l?"sel":""}" onclick="uWk(${wi},'level','${l}')">${LV[l].emoji} ${LV[l].label}</button>`).join("")}
+            </div>
+          </div>
+          <div>
+            <label class="lbl">Key Observation
+              <button class="btn btn-ai btn-sm" style="margin-left:6px" onclick="aiWeek(${wi})">✨ Help</button>
+            </label>
+            <textarea class="inp" placeholder="Pattern across the week…" oninput="uWk(${wi},'key',this.value)">${esc(wk.key)}</textarea>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <label class="lbl">Recommended Follow-Up</label>
+          <textarea class="inp" placeholder="One concrete action for next week…" oninput="uWk(${wi},'follow',this.value)">${esc(wk.follow)}</textarea>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+function uDay(wi, di, f, v) {
+  ASSESS.weeks[wi].days[di][f] = v;
+  if (f === "level" || f === "stamp") renderWeeks();
+  recalc(); qSave();
+}
+function uWk(wi, f, v) {
+  ASSESS.weeks[wi][f] = v;
+  if (f === "level") renderWeeks();
+  qSave();
+}
+function updC(f, v) { ASSESS.concl[f] = v; qSave(); }
+function pickLv(scope, l) {
+  if (scope === "concl") {
+    ASSESS.concl.level = l;
+    document.getElementById("cLv").innerHTML = mkLvPicker("concl", l);
+    recalc(); qSave();
+  }
+}
+function chgStud(v) { SEL.sid = v; renderAssess(); }
+function chgMonth(v) { SEL.month = v; renderAssess(); }
+function chgYear(v) { if(v > 2000) SEL.year = v; renderAssess(); }
+function recalc() {
+  const total = ASSESS.weeks.reduce((s, wk) => s + wk.days.filter(d => d.stamp === "Y").length, 0);
+  const e = document.getElementById("totalSt"); if (e) e.textContent = total + " / 20";
+  const lv = ASSESS.concl.level;
+  const so = document.getElementById("stOut");
+  if (so) so.innerHTML = lv ? `→ Award <b>${LV[lv].stamps} stamp(s)</b> (${LV[lv].emoji} ${LV[lv].label})` : "Select a final level above.";
+}
+function qSave() {
+  clearTimeout(SAVE_T);
+  const e = document.getElementById("saveInd"); if (e) e.textContent = "✏️ Editing…";
+  SAVE_T = setTimeout(() => saveNow(false), 1500);
+}
+async function saveNow(manual=true) {
+  const ok = await fsSet("assessments", aKey(SEL.sid, SEL.year, SEL.month),
+    {...ASSESS, studentId:SEL.sid, year:SEL.year, month:SEL.month});
+  const e = document.getElementById("saveInd");
+  if (e) e.textContent = ok ? "✅ Saved" : "⚠ Save failed";
+  if (manual) toast(ok ? "Saved to cloud ✓" : "Save failed — check your connection", ok ? "ok" : "err");
+}
+
+/* =================================================================
+   AI WRITING HELPER  — Character Relevance Checker
+   1. Modal always shows target character aim + look-for examples
+   2. After teacher types notes and clicks Check, we verify relevance
+   3. If notes match  → green tick + 3 polished statements
+   4. If notes don't  → amber warning + explanation + examples
+                        + "Continue anyway" option
+   Detection uses FULL WORD matching (not substring) with threshold 2+
+================================================================= */
+
+/* ────────────────────────────────────────────────────────────────
+   CHARACTER GUIDE — aim, word-boundary keywords, age look-for
+   Keys match CUR chars exactly (including middot ·)
+──────────────────────────────────────────────────────────────── */
+const CHAR_GUIDE = {
+  "I Introduce Myself":{
+    kw:["name","introduce","introduced","greet","greeted","greeting","hello","hi","wave","waved","meet","met","new friend","told","said name","spoke to","approached"],
+    aim:"Builds early social confidence. A child who can introduce themselves is taking the first brave step toward forming friendships and feeling safe in new environments.",
+    byAge:{
+      "2-3":["Child says their name (even softly) when meeting someone new","Child waves, nods, or makes eye contact as a greeting","Child walks toward a new child without being physically guided"],
+      "4":  ["Child approaches a new classmate first to ask their name","Child introduces themselves without teacher prompting","Child volunteers to meet a new visitor or parent"],
+      "5-6":["Child introduces themselves AND a friend to someone new","Child says: 'Hi, I'm [name], do you want to play?'","Child reflects on how it felt to meet someone new"],
+    }
+  },
+  "I Am Brave":{
+    kw:["brave","bravely","try","tried","attempt","new","first time","scared","nervous","afraid","fear","volunteer","volunteered","go first","went first","climb","challenge","despite","even though","although","still tried"],
+    aim:"Courage is not the absence of fear — it is acting despite it. Children who practise bravery develop resilience, willingness to try new things, and confidence in their own abilities.",
+    byAge:{
+      "4":["Child tries a new activity without saying 'I can't'","Child raises hand to answer even when unsure","Child approaches a new classmate to invite them to play"],
+      "5-6":["Child volunteers to go first in a new activity","Child says 'I was scared but I tried anyway'","Child encourages a hesitant friend: 'Come on, you can do it!'"],
+    }
+  },
+  "I Persevere":{
+    kw:["finish","finished","complete","completed","keep going","kept going","try again","tried again","hard","difficult","stuck","gave up","not give up","persist","persisted","continue","continued","return","returned","work through","another way","again","effort","despite difficulty"],
+    aim:"Perseverance teaches children that effort matters more than immediate success. It builds a growth mindset that will support them in every area of learning.",
+    byAge:{
+      "2-3":["Child returns to a dropped toy and picks it up without giving up","Child tries at least twice before asking for help","Child stays at a task for more than 3 minutes"],
+      "4":  ["Child tries a different approach after the first attempt fails","Child stays at a challenging activity without leaving","Child says 'I'm not done yet' when facing difficulty"],
+      "5-6":["Child works on a hard task for 10+ minutes without stopping","Child says 'Let me try another way'","Child encourages a classmate: 'Don't stop, try again!'"],
+    }
+  },
+  "I Give Hugs \u00b7 I Say Thank You":{
+    kw:["hug","hugged","hugging","thank","thanked","kind","appreciate","appreciated","comfort","comforted","sad","cry","crying","gift","smile","smiled","care","cared","sorry you","support","hand","hold"],
+    aim:"Physical warmth and verbal gratitude help young children understand that their actions affect others positively. These are the earliest building blocks of empathy and social bonding.",
+    byAge:{
+      "2-3":["Child gives a gentle hug or pat to a sad classmate","Child says 'thank you' with eye contact when receiving something","Child smiles or moves closer to a friend who was kind to them"],
+    }
+  },
+  "I Comfort Others":{
+    kw:["comfort","comforted","sad","cry","crying","hurt","help","helped","beside","sit","tissue","hug","pat","patted","okay","ask","asked","concern","support","wound","fell","upset","check","noticed"],
+    aim:"Empathy in action. When children learn to comfort others, they develop the ability to recognise emotions, take perspective, and respond with care — skills that build lifelong kindness.",
+    byAge:{
+      "4":["Child notices a crying classmate and moves toward them","Child asks 'Are you okay?' or 'Does it hurt?'","Child sits beside a sad friend for company without being asked"],
+      "5-6":["Child offers physical comfort AND verbal reassurance","Child goes to the teacher to report: 'My friend needs help'","Child checks on a classmate later: 'Are you feeling better?'"],
+    }
+  },
+  "I Comfort Others \u00b7 I Say Please":{
+    kw:["comfort","comforted","sad","cry","crying","hurt","help","helped","please","polite","ask","asked","request","may i","can i","thank","concern","support","upset","kind","noticed"],
+    aim:"Combining empathy with polite language develops both social-emotional skills and respectful communication. Children learn to care for others while also expressing their own needs appropriately.",
+    byAge:{
+      "4":["Child says 'Are you okay?' when a peer is upset","Child uses 'please' when requesting something from teacher or peers","Child catches themselves: 'Give me—' \u2192 corrects to 'May I have that, please?'"],
+    }
+  },
+  "I Cheer for Others":{
+    kw:["cheer","cheered","clap","clapped","win","winner","won","happy for","proud","celebrate","celebrated","applaud","congratulate","well done","good job","not sulk","accept","generous","support","encourage","encouraged"],
+    aim:"Learning to celebrate others' success — even when we didn't win — builds generosity of spirit, emotional maturity, and genuine community. It also helps children manage disappointment healthily.",
+    byAge:{
+      "5-6":["Child claps genuinely when a classmate wins, even if they lost","Child says 'Good job!' or 'I knew you could do it!' unprompted","Child does not pout or leave when someone else receives praise"],
+    }
+  },
+  "I Tidy Up \u00b7 I Push In My Chair":{
+    kw:["tidy","tidied","clean","cleaned","put away","pack","packed","chair","push","pushed","sort","sorted","basket","bin","shelf","bag","peg","organise","organised","place","placed","return","returned","hang","hung"],
+    aim:"Order and responsibility for shared spaces teaches children that their actions affect others. Consistent routines build self-discipline and respect for the community.",
+    byAge:{
+      "2-3":["Child responds to the tidy-up signal by stopping play","Child puts at least 3 items back in their correct place","Child pushes their chair under the table after standing up"],
+    }
+  },
+  "I Push In My Chair \u00b7 I Tidy Up":{
+    kw:["chair","push","pushed","tidy","tidied","clean","cleaned","put away","walk","walked","safe","careful","place","placed","return","returned","sort","sorted","bin","pack"],
+    aim:"Safety habits and orderliness protect children and others. When these routines become automatic, children internalise the idea that they are responsible for the spaces they share.",
+    byAge:{
+      "2-3":["Child pushes chair under table every time they stand","Child stops and walks (does not run) inside the classroom","Child responds to tidy-up signal within 30 seconds"],
+    }
+  },
+  "I Care for Books \u00b7 I Cooperate":{
+    kw:["book","gently","gentle","page","shelf","return","returned","care","cared","cooperate","cooperated","together","partner","share","shared","listen","listened","agree","agreed","role","team","build","built","joint"],
+    aim:"Caring for books teaches respect for shared resources. Cooperation develops the ability to work toward a shared goal — one of the most critical skills for school and life.",
+    byAge:{
+      "4":["Child turns book pages one at a time from the corner","Child returns a book to the correct shelf after reading","Child listens to a partner's idea before sharing their own"],
+    }
+  },
+  "I Care for the Earth":{
+    kw:["litter","bin","rubbish","recycle","recycled","recycling","clean","cleaned","pick up","picked up","water","tap","light","plant","earth","environment","animal","protect","waste","throw","sort","green","nature"],
+    aim:"Environmental responsibility connects children to the world beyond themselves. Children who care for the earth develop a sense of civic duty and understand that their small actions have real impact.",
+    byAge:{
+      "5-6":["Child places waste in the correct recycling bin without being told","Child picks up litter from the playground that is not theirs","Child explains: 'The animals need clean water'"],
+    }
+  },
+  "I Can Be Quiet \u00b7 I Can Wait":{
+    kw:["quiet","quieter","wait","waited","waiting","patient","patiently","still","seat","sit","turn","listen","signal","calm","mat","rest","stop","stopped","pause","paused","line"],
+    aim:"Self-regulation — the ability to be quiet and wait — is one of the strongest predictors of school readiness. It develops the prefrontal cortex's ability to manage impulse.",
+    byAge:{
+      "2-3":["Child sits still for 3–5 minutes during story time","Child waits for their turn without crying or snatching","Child stops talking when the teacher raises the quiet signal"],
+    }
+  },
+  "I Can Wait \u00b7 I Can Be Quiet":{
+    kw:["quiet","quieter","wait","waited","waiting","patient","patiently","still","seat","sit","turn","listen","signal","calm","mat","rest","stop","stopped","pause","paused","eye contact"],
+    aim:"Listening and self-control are the foundation of all classroom learning. A child who can wait and be quiet is developing the executive function needed for complex learning.",
+    byAge:{
+      "2-3":["Child sits still for 3–5 minutes during story time","Child waits for the teacher to make eye contact before speaking","Child stops and is quiet when the quiet signal is given"],
+    }
+  },
+  "I Raise My Hand":{
+    kw:["hand","raise","raised","wait","waited","answer","answered","call","signal","turn","speak","shout","interrupt","volunteer","volunteered","respond","responded","put up","put hand"],
+    aim:"Raising a hand before speaking teaches children to manage excitement, respect others' contributions, and participate in structured group communication.",
+    byAge:{
+      "4":["Child raises hand and waits to be called before speaking","Child does not shout out even when excited or sure of the answer","Child catches themselves calling out and corrects to hand-raising"],
+    }
+  },
+  "I Manage My Time":{
+    kw:["time","finish","finished","complete","completed","fast","slow","hurry","hurried","timer","plan","planned","start","started","ready","quick","done","before","after","sequence","schedule","manage","managed","pace"],
+    aim:"Time management gives children a sense of agency over their learning. Children who pace themselves develop planning skills, task completion habits, and reduced anxiety.",
+    byAge:{
+      "5-6":["Child begins a task within 2 minutes of receiving instructions","Child checks the visual timer and adjusts their pace","Child makes a plan before starting: 'First I'll do this, then this'"],
+    }
+  },
+  "I Help Friends \u00b7 I Say Please":{
+    kw:["help","helped","assist","assisted","please","polite","kind","support","supported","friend","give","gave","share","shared","fetch","fetched","carry","carried","door","pick up","picked","hold","held","request","may i"],
+    aim:"Helping others and using polite language are the two most visible signs of a socially confident and empathetic child. Together, they form the foundation of respectful, caring relationships.",
+    byAge:{
+      "2-3":["Child hands a dropped item back to a classmate without being asked","Child says 'please' spontaneously at least once during the session","Child helps a friend put on their shoes or bag when struggling"],
+    }
+  },
+  "I Help New Kids":{
+    kw:["new","new child","new student","new kid","introduce","introduced","welcome","welcomed","show","showed","guide","guided","include","included","join","joined","explain","explained","tour","sit","sat","partner","arrived","arrived"],
+    aim:"Welcoming new children develops empathy, leadership, and community responsibility. It also teaches children to look beyond their existing friendships.",
+    byAge:{
+      "5-6":["Child introduces themselves to a new classmate without teacher prompting","Child gives a new child a tour of the classroom or playground","Child sits beside a new child at snack time and starts a conversation"],
+    }
+  },
+  "I Share":{
+    kw:["share","shared","sharing","give","gave","offer","offered","turn","together","both","your turn","here you go","use","borrow","lent","half","divide","divided"],
+    aim:"Sharing is one of the most developmentally challenging prosocial behaviours for young children. Each voluntary sharing moment builds the capacity for generosity and reduces egocentric thinking.",
+    byAge:{
+      "2-3":["Child offers a toy or material to a peer voluntarily","Child waits for their turn using the sand timer (with adult nearby)","Child smiles or looks pleased after sharing something"],
+    }
+  },
+  "I Cooperate":{
+    kw:["cooperate","cooperated","together","team","partner","partnered","agree","agreed","role","both","we both","listen","listened","joint","group","help each","build together","decide","decided","collaborate","collaborated","took turns","joint project","worked with"],
+    aim:"Cooperation requires listening, compromising, and valuing others' ideas. It prepares children for collaborative learning and the social demands of primary school and beyond.",
+    byAge:{
+      "4":["Child agrees on roles with a partner before starting a task","Child listens to a partner's idea without interrupting","Child says 'We made it together!' — uses 'we' language"],
+    }
+  },
+  "I Solve Conflicts":{
+    kw:["conflict","fight","argument","disagree","disagreement","solve","solved","sort","sorted","talk","talked","calm","calmed","fair","turn","compromise","compromised","peace","resolve","resolved","both sides","upset","angry","words not hands","used words"],
+    aim:"Conflict resolution is one of the highest social-emotional skills. Children who learn to solve conflicts with words become emotionally intelligent, resilient young people.",
+    byAge:{
+      "5-6":["Child uses words instead of physical action when conflict arises","Child suggests a fair solution: 'Let's take turns — you first, then me'","Child listens to the other child's view before responding"],
+    }
+  },
+  "I Say Sorry":{
+    kw:["sorry","apologise","apologised","apologize","apologized","forgive","forgave","mistake","accident","accidental","hurt","bump","bumped","knock","knocked","took","fix","fixed","repair","repaired","my fault","I was wrong"],
+    aim:"Saying sorry teaches children accountability and the importance of repairing relationships. It helps them develop a moral compass — understanding that their actions affect how others feel.",
+    byAge:{
+      "2-3":["Child says 'sorry' after bumping or taking something from a peer","Child looks at the other child when saying sorry (not at the floor)","Child gently pats the other child after saying sorry"],
+    }
+  },
+  "I Say Sorry \u00b7 I Forgive":{
+    kw:["sorry","apologise","apologised","apologize","apologized","forgive","forgave","forgiven","accept","accepted","okay","mistake","accident","hurt","repair","friend again","resume","let go","sincere","tone"],
+    aim:"Apology and forgiveness together complete the repair of a relationship. Children who can both apologise sincerely and forgive genuinely build stronger, more resilient friendships.",
+    byAge:{
+      "4":["Child apologises without being told to, within minutes of causing hurt","Child accepts an apology with 'It's okay' — not a cold shoulder","Child resumes friendly play with the same child after resolving conflict"],
+    }
+  },
+  "I Apologise & Forgive":{
+    kw:["sorry","apologise","apologised","apologize","apologized","forgive","forgave","forgiven","accept","accepted","resolve","resolved","explain","explained","wrong","fault","responsible","friend again","check","calm","discuss","discussed"],
+    aim:"At this level, reconciliation is a full conversation — not just an exchange of words. Children develop emotional intelligence, communication skills, and the understanding that relationships require ongoing care.",
+    byAge:{
+      "5-6":["Child initiates an apology and explains why: 'I'm sorry I said that — it hurt your feelings'","Child forgives generously and resumes warm interaction","Child encourages two arguing classmates to talk to each other"],
+    }
+  },
+  "I Line Up \u00b7 I Stay Safe":{
+    kw:["line","lined","queue","queued","wait","waited","safe","safety","careful","rule","walk","walked","cross","stop","stopped","look","both ways","orderly","fire drill","follow","followed","instruction"],
+    aim:"Safety and orderly routines are essential civic skills. Children who follow safety rules protect themselves and others, and develop the understanding that rules exist for a reason.",
+    byAge:{
+      "4":["Child lines up in orderly manner when the signal is given","Child keeps hands to themselves while standing in line","Child participates correctly and calmly in fire drill procedure"],
+    }
+  },
+  "I Stay Safe":{
+    kw:["safe","safety","careful","rule","walk","walked","stop","stopped","look","both ways","hazard","danger","report","reported","protect","aware","tell teacher","cross","steady","unsafe","warned","warning"],
+    aim:"Safety awareness protects children physically, but it also develops responsibility and awareness for their community. Children who understand safety become role models for younger peers.",
+    byAge:{
+      "5-6":["Child explains a safety rule with a reason: 'We don't run because you could hurt your head'","Child identifies an unsafe situation independently and reports it","Child knows their full name, parent's phone number, and home address"],
+    }
+  },
+  "I Listen Well \u00b7 I Keep Promises":{
+    kw:["listen","listened","listening","hear","heard","promise","promised","keep","kept","follow","followed","instruction","instructed","remember","remembered","repeat","repeated","eye contact","face","trust","reliable","said would","fulfilled"],
+    aim:"Listening well and keeping promises are both about trustworthiness. Children who develop these habits become students that teachers and peers can rely on — a foundation for leadership.",
+    byAge:{
+      "4":["Child follows a 3-step instruction correctly the first time","Child keeps a promise made to a peer: 'I said I'd save you a seat — I did'","Child does not make promises they know they cannot keep"],
+      "5-6":["Child follows instructions precisely, including all details","Child listens to a classmate's full idea before responding","Child takes responsibility when they forget a promise: 'I let you down, I'm sorry'"],
+    }
+  },
+  "I Ask Questions":{
+    kw:["question","asked","why","how","what","wonder","wondered","curious","curiosity","find out","discover","discovered","explore","explored","interesting","want to know","look up","looked up","research","researched","investigate","investigated"],
+    aim:"Curiosity is the engine of learning. Children who ask questions are developing critical thinking, a love of learning, and the confidence to engage with the world.",
+    byAge:{
+      "2-3":["Child points to something new and asks 'What is that?'","Child asks 'Why?' after an explanation","Child notices change in the environment: 'The plant is bigger!'"],
+      "4":  ["Child asks at least one 'Why?' or 'How?' question per lesson","Child wonders aloud: 'I wonder what happens if we...'","Child goes to a book or the Wonder Wall to find out more"],
+      "5-6":["Child generates a 'big question' and states it clearly","Child researches a question independently using books","Child presents findings to the class: 'I found out that...'"],
+    }
+  },
+  "I Clear My Plate \u00b7 I Wash My Hands":{
+    kw:["plate","cleared","clear plate","wash","washed","washing","hand","soap","dry","dried","snack","meal","eat","hygiene","routine","bin","food","rinse","rinsed","towel","before eating","after eating","handwash"],
+    aim:"Self-care routines build independence, hygiene, and responsibility. Children who manage their own meals and handwashing internalise health habits that protect themselves and their classmates.",
+    byAge:{
+      "2-3":["Child clears their own plate to the designated area after every meal","Child goes to wash hands before snack time without being told","Child completes all handwashing steps: wet, soap, scrub, rinse, dry"],
+    }
+  },
+  "I Keep Promises \u00b7 I Clear My Plate":{
+    kw:["promise","promised","keep","kept","plate","cleared","clear plate","routine","wash","washed","responsible","follow through","said would","commit","committed","reliable","snack","meal","food","bin","clean","cleaned"],
+    aim:"Self-discipline means doing what you said you would — even when it's small. Linking promises to daily routines like clearing plates helps children practise reliability in tangible, everyday ways.",
+    byAge:{
+      "4":["Child makes a commitment at morning circle and follows through by end of day","Child clears plate and washes hands at every meal without reminders","Child acknowledges when they forgot a commitment and does not blame others"],
+    }
+  },
+  "I Manage My Time \u00b7 I Persevere":{
+    kw:["time","finish","finished","complete","completed","plan","planned","schedule","persist","persisted","try again","tried again","keep going","kept going","hard","difficult","stuck","manage","managed","pace","not give up","reflect","improve","improved"],
+    aim:"Time management and perseverance together equip children with the two most powerful tools for independent learning. Together, they describe a child who plans, starts, and finishes — without giving up.",
+    byAge:{
+      "5-6":["Child creates a personal plan before starting a task","Child tries 3 different strategies before asking for help","Child reflects: 'What did I finish this week? What will I improve?'"],
+    }
+  },
+  "I Say Thank You \u00b7 I Show Gratitude":{
+    kw:["thank","thanked","gratitude","grateful","appreciate","appreciated","kind","gift","notice","noticed","recognise","recognised","say thank","show","smile","smiled","hug","warm","acknowledge","acknowledged","value","valued"],
+    aim:"Gratitude is one of the strongest positive emotions. Children who practise thankfulness develop emotional wellbeing, stronger relationships, and a habit of noticing goodness in their world.",
+    byAge:{
+      "2-3":["Child says 'thank you' spontaneously at least once during the session","Child makes eye contact and smiles while saying thank you","Child reaches out to hold the hand of someone who helped them"],
+    }
+  },
+  "I Show Gratitude \u00b7 I Raise My Hand":{
+    kw:["thank","thanked","gratitude","grateful","appreciate","appreciated","hand","raise","raised","volunteer","volunteered","respond","responded","notice","noticed","recognise","recognised","specific","card","journal","name"],
+    aim:"Gratitude at this age becomes specific and intentional. Pairing it with active participation (hand-raising) helps children practise both emotional expression and confident contribution in a group.",
+    byAge:{
+      "4":["Child says a specific thank you: 'Thank you for helping me when I spilled'","Child raises hand voluntarily to contribute to class discussions","Child names one thing they are grateful for at morning circle"],
+    }
+  },
+  "I Lead \u00b7 I Look Forward to School":{
+    kw:["lead","leader","led","organise","organised","start","started","initiative","forward","excited","school","next year","year one","primary","volunteer","volunteered","guide","guided","help","plan","planned","arrange","arranged","look forward"],
+    aim:"Leadership and positive anticipation of school transition work together in December. Children who lead and look forward to new challenges approach change with confidence and purpose.",
+    byAge:{
+      "5-6":["Child volunteers to lead a group activity without being asked","Child speaks positively about starting primary school","Child reflects on their character growth: 'At the start I couldn't share — now I love it'"],
+    }
+  },
+};
+
+/* ── Normalise character target string for lookup ── */
+function findGuide(charTarget) {
+  if (!charTarget) return null;
+  // Exact match first
+  if (CHAR_GUIDE[charTarget]) return CHAR_GUIDE[charTarget];
+  // Normalise: trim, collapse spaces, unify middle-dots
+  const norm = t => t.trim().replace(/\s+/g,' ').replace(/[\u00b7\u2022\u2027\u22c5]/g,'\u00b7');
+  const k = norm(charTarget);
+  for (const key of Object.keys(CHAR_GUIDE)) {
+    if (norm(key) === k) return CHAR_GUIDE[key];
+  }
+  // Partial match: first word
+  const first = charTarget.split(/[\s\u00b7]/)[1] || charTarget.split(' ')[0];
+  for (const key of Object.keys(CHAR_GUIDE)) {
+    if (key.includes(first)) return CHAR_GUIDE[key];
+  }
+  return null;
+}
+
+/* ── Relevance checker — full-word matching, threshold 2 ── */
+function checkRelevance(notes, charTarget) {
+  const guide = findGuide(charTarget);
+  if (!guide) return {relevant:true, guide:null, hits:[], reason:"no_guide"};
+
+  const nl = (' ' + notes.toLowerCase() + ' ').replace(/[^\w\s]/g,' ');
+
+  // Full-word match: keyword must appear as a whole word or phrase
+  const matchKw = (kw) => {
+    const k = kw.toLowerCase().trim();
+    if (k.includes(' ')) {
+      // Multi-word phrase
+      return nl.includes(' ' + k + ' ') || nl.includes(' ' + k.replace(/\s+/g,'  ') + ' ');
+    }
+    // Single word — pad with spaces in normalised string
+    return nl.includes(' ' + k + ' ');
+  };
+
+  const hits = guide.kw.filter(k => matchKw(k));
+  // Need at least 2 distinct keyword matches to be confident
+  return {relevant: hits.length >= 2, guide, hits, reason: hits.length >= 2 ? "match" : "no_match"};
+}
+
+/* ── Sentence builders ── */
+function buildObsSuggestions(notes, charTarget, monthName, theme) {
+  const a = notes.trim().replace(/^(the child|he|she|they|student|this child)\s+/i,"").replace(/\.$/, "");
+  return [
+    `Today, the child ${a}.`,
+    `During ${monthName} character activities, the child was observed to ${a}. This reflects growth in "${charTarget}".`,
+    `This interaction showed "${charTarget}" in action: the child ${a}. A meaningful example of this month's theme — ${theme}.`,
+  ];
+}
+function buildWeekSuggestions(notes, charTarget, theme) {
+  const ex = notes.trim().length > 10 ? notes.trim() : `showing ${charTarget.toLowerCase()} during class activities`;
+  const c = ["This represents clear progress from the beginning of the week.",
+             "The child's confidence in this area is growing steadily.",
+             "This pattern shows the character becoming more natural and self-initiated."];
+  const S = [
+    (ch,e,ch2) => `This week, ${ch} was evident across multiple interactions. The most notable moment was when ${e}. ${ch2}`,
+    (ch,e,ch2) => `A consistent pattern of ${ch.toLowerCase()} emerged this week. ${e}. ${ch2}`,
+    (ch,e,ch2) => `The week showed clear growth in ${ch.toLowerCase()}. ${e} stood out as a significant moment. ${ch2}`,
+  ];
+  return S.map((s,i) => s(charTarget, ex, c[i]));
+}
+function buildHomeSuggestions(charTarget, mo) {
+  const HA = {
+    1:["taking turns introducing each other to one new person today","Who did you meet today? What is their name?"],
+    2:["giving one person a genuine thank you with eye contact","Who was kind to you today? How did it make you feel?"],
+    3:["assigning your child one tidy-up job after dinner","What is your special job at school? Can you show me?"],
+    4:["practising a 2-minute quiet time together","What did you do while you waited patiently today?"],
+    5:["noticing one person who needs help and doing something small","Did you help anyone today? What did you do?"],
+    6:["sharing one snack or toy and naming it as sharing","What did you share today? How did your friend feel?"],
+    7:["practising saying sorry with eye contact for small things","Did you need to say sorry today? Did someone say sorry to you?"],
+    8:["doing a safety walk — spot one unsafe thing and fix it","What is one safety rule you know? Why is it important?"],
+    9:["playing a listening game — repeat back what each other said","What is one thing you heard at school today that surprised you?"],
+    10:["choosing one question to wonder about and looking it up together","What is the most interesting thing you learned today?"],
+    11:["letting your child lead their own bedtime routine independently","What job or promise did you keep today?"],
+    12:["going around the dinner table — everyone shares one thing they are grateful for","What are you most proud of from this whole year?"],
+  };
+  const acts = HA[mo] || ["practising this character at home","What did you do today that showed this character?"];
+  const S = [
+    (ch,a,q) => `This month we are practising "${ch}" at school. At home, try: ${a}. Ask your child: "${q}"`,
+    (ch,a,q) => `Great news! Your child is working on "${ch}". You can support this at home by ${a.toLowerCase()}. Tonight, ask them: "${q}"`,
+    (ch,a,q) => `We have been focusing on "${ch}" this month. One simple thing to try at home: ${a}. A good conversation starter: "${q}"`,
+  ];
+  return S.map(s => s(charTarget, acts[0], acts[1]));
+}
+
+/* ── Global callbacks ── */
+window._aiCb = null;
+window._aiApply = null;
+window._aiForce = null;
+
+/* ── Modal — always shows character aim + look-for before notes ── */
+function aiModal(title, ageLabel, charTarget, rough, onGenerate) {
+  const guide = findGuide(charTarget);
+  window._aiCb = onGenerate;
+
+  const guideHtml = guide ? `
+    <div style="background:#F0F4FF;border:1.5px solid #C7D7F5;border-radius:12px;padding:12px 14px;margin-bottom:14px">
+      <div style="font-family:'Baloo 2';font-weight:800;color:var(--navy);font-size:13.5px;margin-bottom:6px">
+        📌 This month's target: <span style="color:var(--blue)">${esc(charTarget)}</span> <span style="font-weight:500;color:var(--muted)">· ${esc(ageLabel)}</span>
+      </div>
+      <div style="font-size:12.5px;color:var(--ink);line-height:1.55;margin-bottom:9px">${esc(guide.aim)}</div>
+      <div style="font-family:'Baloo 2';font-weight:700;color:var(--navy);font-size:12px;margin-bottom:6px">🔍 What to look for today:</div>
+      ${(guide.byAge[ageLabel.replace("Age ","").replace("–","-")] || guide.byAge["4"] || Object.values(guide.byAge)[0] || [])
+        .map(e=>`<div style="display:flex;gap:7px;margin-bottom:5px;align-items:flex-start">
+          <div style="width:17px;height:17px;border-radius:50%;background:var(--ach-bg);color:var(--ach-c);
+            display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px">✓</div>
+          <div style="font-size:12.5px;color:var(--ink);line-height:1.5">${esc(e)}</div>
+        </div>`).join("")}
+    </div>` : "";
+
+  setModal(`
+    <div class="modal-hdr">
+      <div class="ai-ico">✨</div>
+      <div><h3>${title}</h3></div>
+    </div>
+    <div class="modal-body">
+      ${guideHtml}
+      <label class="lbl" style="margin-bottom:6px">Your observation notes <span style="font-weight:500;color:var(--muted)">(any language, rough grammar)</span></label>
+      <textarea class="inp" id="ai-raw" style="min-height:75px" placeholder="e.g. Ashraf share block to peers during Montessori, very kind">${esc(rough||"")}</textarea>
+      <div class="row" style="margin-top:11px">
+        <button class="btn btn-ai" id="ai-go" onclick="window._aiCb()">✨ Check &amp; Suggest</button>
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      </div>
+      <div id="ai-out"></div>
+    </div>`);
+  setTimeout(() => { const el = document.getElementById("ai-raw"); if (el) el.focus(); }, 60);
+}
+
+/* ── Show results ── */
+function aiShow(opts, applyFn, matched) {
+  const out = document.getElementById("ai-out");
+  const goBtn = document.getElementById("ai-go"); if (goBtn) goBtn.disabled = false;
+  if (!opts || !opts.length) {
+    out.innerHTML = '<div style="color:var(--em-c);font-weight:700;margin-top:12px">Please type your observation notes above first.</div>';
+    return;
+  }
+  window._aiOpts = opts;
+  window._aiApply = applyFn;
+  const header = matched !== false
+    ? `<div style="display:flex;align-items:center;gap:8px;margin:12px 0 9px;padding:9px 12px;background:var(--ach-bg);border-radius:10px">
+        <span style="font-size:17px">✅</span>
+        <span style="font-weight:800;color:var(--ach-c);font-size:13.5px">Your notes match this month's character — great observation!</span>
+      </div>`
+    : `<div style="font-weight:700;color:var(--navy);margin:12px 0 9px;font-size:13px">Tap a statement to use it (you can edit after):</div>`;
+  out.innerHTML = header +
+    opts.map((o, i) => `<div class="ai-opt" onclick="window._aiApply(${i})">${esc(o)}<span class="use-lbl">✓ Use this statement</span></div>`).join("");
+}
+
+/* ── Guidance panel when notes don't match ── */
+function showGuidancePanel(guide, charTarget, ageGroup, forceFn) {
+  const out = document.getElementById("ai-out");
+  const goBtn = document.getElementById("ai-go"); if (goBtn) goBtn.disabled = false;
+  const agKey = ageGroup.replace("Age ","").replace("–","-");
+  const examples = (guide.byAge[agKey] || guide.byAge["4"] || Object.values(guide.byAge)[0] || []).slice(0,3);
+  window._aiForce = forceFn;
+  out.innerHTML = `
+    <div style="margin-top:12px;border:2px solid var(--amber);border-radius:13px;overflow:hidden">
+      <div style="background:var(--dev-bg);padding:11px 14px;display:flex;gap:10px;align-items:flex-start">
+        <div style="font-size:20px;flex-shrink:0">⚠️</div>
+        <div>
+          <div style="font-family:'Baloo 2';font-weight:800;color:var(--dev-c);font-size:13.5px;margin-bottom:4px">
+            Your notes don't seem to describe "<b>${esc(charTarget)}</b>" yet
+          </div>
+          <div style="font-size:12.5px;color:var(--ink);line-height:1.55">
+            ${esc(guide.aim)}
+          </div>
+        </div>
+      </div>
+      <div style="background:#fff;padding:11px 14px">
+        <div style="font-family:'Baloo 2';font-weight:700;color:var(--navy);font-size:12.5px;margin-bottom:8px">
+          🔍 Try to observe one of these today (${esc(ageGroup)}):
+        </div>
+        ${examples.map(e=>`
+          <div style="display:flex;gap:8px;margin-bottom:7px;align-items:flex-start">
+            <div style="width:18px;height:18px;border-radius:50%;background:var(--ach-bg);color:var(--ach-c);
+              display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px">✓</div>
+            <div style="font-size:13px;line-height:1.5;color:var(--ink)">${esc(e)}</div>
+          </div>`).join("")}
+        <div style="margin-top:10px;padding-top:9px;border-top:1px dashed var(--border);font-size:12px;color:var(--muted);line-height:1.5">
+          ✏️ <b>Update your notes above</b> to describe what you saw related to "<b>${esc(charTarget)}</b>", then tap <b>Check &amp; Suggest</b> again.
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:9px;font-size:12px"
+          onclick="window._aiForce()">My notes are correct — continue anyway →</button>
+      </div>
+    </div>`;
+}
+
+/* ── aiObs ── */
+function aiObs(wi, di) {
+  const cur = CUR[SEL.month];
+  const stud = window._curStud || {};
+  const age  = stud.ageGroup || "4";
+  const ageLbl = AGE_LABEL[age] || "Age 4";
+  const target = cur.chars[age] || cur.chars["4"];
+  const applyFn = function(i) {
+    ASSESS.weeks[wi].days[di].obs = window._aiOpts[i];
+    closeModal(); renderWeeks(); qSave(); toast("Statement added \u2713","ok");
+  };
+  aiModal("\u2728 Statement Helper \u2014 Daily Observation", ageLbl, target,
+    ASSESS.weeks[wi].days[di].obs,
+    function() {
+      const raw = (document.getElementById("ai-raw")||{}).value?.trim()||"";
+      if (!raw) { const o=document.getElementById("ai-out"); if(o)o.innerHTML='<div style="color:var(--em-c);font-weight:700;margin-top:10px">Please type your observation notes first.</div>'; return; }
+      const rel = checkRelevance(raw, target);
+      if (!rel.relevant && rel.reason !== "no_guide") {
+        showGuidancePanel(rel.guide, target, ageLbl, function() {
+          window._aiForce = null;
+          aiShow(buildObsSuggestions(raw, target, cur.name, cur.theme), applyFn, false);
+        });
+      } else {
+        aiShow(buildObsSuggestions(raw, target, cur.name, cur.theme), applyFn, true);
+      }
+    });
+}
+
+/* ── aiWeek ── */
+function aiWeek(wi) {
+  const cur = CUR[SEL.month];
+  const stud = window._curStud || {};
+  const age  = stud.ageGroup || "4";
+  const ageLbl = AGE_LABEL[age] || "Age 4";
+  const target = cur.chars[age] || cur.chars["4"];
+  const rough = ASSESS.weeks[wi].key || ASSESS.weeks[wi].days.filter(d=>d.obs).map(d=>d.obs).join(". ");
+  const applyFn = function(i) {
+    ASSESS.weeks[wi].key = window._aiOpts[i];
+    closeModal(); renderWeeks(); qSave(); toast("Added \u2713","ok");
+  };
+  aiModal(`\u2728 Statement Helper \u2014 Week ${wi+1} Key Observation`, ageLbl, target, rough,
+    function() {
+      const raw = (document.getElementById("ai-raw")||{}).value?.trim()||rough||"";
+      if (!raw) { const o=document.getElementById("ai-out"); if(o)o.innerHTML='<div style="color:var(--em-c);font-weight:700;margin-top:10px">Please type your notes first.</div>'; return; }
+      const rel = checkRelevance(raw, target);
+      if (!rel.relevant && rel.reason !== "no_guide") {
+        showGuidancePanel(rel.guide, target, ageLbl, function() {
+          window._aiForce = null;
+          aiShow(buildWeekSuggestions(raw, target, cur.theme), applyFn, false);
+        });
+      } else {
+        aiShow(buildWeekSuggestions(raw, target, cur.theme), applyFn, true);
+      }
+    });
+}
+
+/* ── aiHome ── */
+function aiHome() {
+  const cur = CUR[SEL.month];
+  const stud = window._curStud || {};
+  const age  = stud.ageGroup || "4";
+  const ageLbl = AGE_LABEL[age] || "Age 4";
+  const target = cur.chars[age] || cur.chars["4"];
+  const applyFn = function(i) {
+    ASSESS.concl.home = window._aiOpts[i];
+    const el = document.getElementById("c-hm"); if(el) el.value = window._aiOpts[i];
+    closeModal(); qSave(); toast("Home message added \u2713","ok");
+  };
+  aiModal("\u2728 Statement Helper \u2014 Home Message", ageLbl, target,
+    ASSESS.concl.home || "",
+    function() {
+      aiShow(buildHomeSuggestions(target, SEL.month), applyFn, true);
+    });
+}
+
+/* =================================================================
+   REPORTS
+================================================================= */
+async function renderReports() {
+  loading("main");
+  const studs = await myStudents();
+  document.getElementById("main").innerHTML = `
+    <div class="ph"><h2>📊 Reports</h2>
+      <p>Generate then use browser Print → "Save as PDF" to keep a copy.</p></div>
+    <div class="card no-print"><div class="g4">
+      <div><label class="lbl">Student</label>
+        <select class="inp" id="r-s">
+          ${studs.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")||"<option>—</option>"}
+        </select></div>
+      <div><label class="lbl">Report Type</label>
+        <select class="inp" id="r-t" onchange="document.getElementById('wkw').style.display=this.value==='weekly'?'block':'none'">
+          <option value="monthly">Monthly Report</option>
+          <option value="weekly">Weekly Report</option>
+          <option value="yearly">Yearly Report</option>
+        </select></div>
+      <div><label class="lbl">Month</label>
+        <select class="inp" id="r-m">
+          ${Object.keys(CUR).map(k=>`<option value="${k}" ${+k===SEL.month?"selected":""}>${CUR[k].name}</option>`).join("")}
+        </select></div>
+      <div><label class="lbl">Year</label>
+        <input class="inp" type="number" id="r-y" value="${SEL.year}"></div>
+    </div>
+    <div id="wkw" style="display:none;margin-top:10px">
+      <label class="lbl">Week</label>
+      <select class="inp" style="max-width:180px" id="r-w">
+        <option value="0">Week 1</option><option value="1">Week 2</option>
+        <option value="2">Week 3</option><option value="3">Week 4</option>
+      </select>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn btn-navy" onclick="genReport()">📄 Generate</button>
+      <button class="btn btn-amber" onclick="window.print()">🖨 Print / Save PDF</button>
+    </div></div>
+    <div id="rOut"></div>`;
+  if (studs.length) genReport();
+}
+async function genReport() {
+  const sid = document.getElementById("r-s").value;
+  const type = document.getElementById("r-t").value;
+  const mo = +document.getElementById("r-m").value;
+  const yr = +document.getElementById("r-y").value;
+  const out = document.getElementById("rOut");
+  if (!out) return;
+  const allStuds = await fsAll("students");
+  const stud = allStuds.find(s => s.id === sid);
+  if (!stud) return;
+  out.innerHTML = `<div class="spin" style="margin:30px auto;border-top-color:var(--navy)"></div>`;
+  let html = "";
+  if (type === "yearly") html = await yearlyRpt(stud, yr);
+  else if (type === "weekly") html = await weeklyRpt(stud, yr, mo, +document.getElementById("r-w").value);
+  else html = await monthlyRpt(stud, yr, mo);
+  out.innerHTML = html;
+}
+function rptHdr(stud, sub) {
+  return `<div style="text-align:center;border-bottom:3px solid var(--navy);padding-bottom:12px;margin-bottom:14px">
+    <div style="font-family:'Baloo 2';font-size:20px;font-weight:800;color:var(--navy)">💛 Little Big Hearts</div>
+    <div style="font-size:12px;color:var(--muted)">International & Private Preschool · Kulai, Johor</div>
+    <div style="font-family:'Baloo 2';font-size:16px;color:var(--navy);margin-top:7px">${sub}</div></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;font-size:13px">
+      <div><b>Name:</b><br>${esc(stud.name)}</div>
+      <div><b>Class:</b><br>${esc(stud.className||"")}</div>
+      <div><b>Age:</b><br>${AGE_LABEL[stud.ageGroup]}</div>
+      <div><b>Teacher:</b><br>${esc(USER.name)}</div>
+    </div>`;
+}
+async function monthlyRpt(stud, yr, mo) {
+  const a = await fsGet("assessments", aKey(stud.id, yr, mo));
+  const cur = CUR[mo];
+  if (!a || !a.weeks) return `<div class="card"><div class="empty"><div class="ico">📭</div>No saved data for ${cur.name} ${yr}.</div></div>`;
+  const total = a.weeks.reduce((s,wk) => s + wk.days.filter(d=>d.stamp==="Y").length, 0);
+  const lv = a.concl.level;
+  return `<div class="card">
+    ${rptHdr(stud, `${cur.emoji} Monthly Assessment — ${cur.name} ${yr}`)}
+    <div class="banner" style="background:linear-gradient(135deg,${cur.color},${cur.color}aa)">
+      <h3>${esc(cur.theme)}</h3><div class="chip">🎯 ${esc(cur.chars[stud.ageGroup])}</div></div>
+    ${a.weeks.map((wk,wi) => {
+      const st = wk.days.filter(d=>d.stamp==="Y").length;
+      return `<div style="border:1px solid var(--border);border-radius:11px;padding:12px;margin-bottom:11px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <b style="font-family:'Baloo 2';color:var(--navy)">Week ${wi+1}</b>
+          <span>${wk.level?`<span class="lv ${wk.level}">${LV[wk.level].emoji} ${LV[wk.level].label}</span>`:""} ⭐${st}/5</span>
+        </div>
+        ${wk.days.filter(d=>d.obs).map(d => {
+          const idx = wk.days.indexOf(d);
+          return `<div style="font-size:13px;margin-bottom:4px"><b>${DAYS[idx]}:</b> ${esc(d.obs)} ${d.level?`<span class="lv ${d.level}" style="font-size:10px">${LV[d.level].emoji}</span>`:""}</div>`;
+        }).join("") || "<div style='font-size:12px;color:var(--muted)'>No daily notes recorded.</div>"}
+        ${wk.key?`<div style="font-size:13px;margin-top:7px;background:#F0F4FF;padding:8px;border-radius:8px"><b>Key:</b> ${esc(wk.key)}</div>`:""}
+        ${wk.follow?`<div style="font-size:13px;margin-top:5px;background:#F0FAF4;padding:8px;border-radius:8px"><b>Follow-up:</b> ${esc(wk.follow)}</div>`:""}
+      </div>`;
+    }).join("")}
+    <div style="border:2px solid var(--navy);border-radius:12px;padding:14px;margin-top:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+        <b style="font-family:'Baloo 2';font-size:16px;color:var(--navy)">🏁 Monthly Conclusion</b>
+        <span>${lv?`<span class="lv ${lv}">${LV[lv].emoji} ${LV[lv].label} → ${LV[lv].stamps} stamp(s)</span>`:""} Total ⭐${total}/20</span>
+      </div>
+      ${a.concl.evidence?`<p style="font-size:13px;margin-bottom:6px"><b>Evidence:</b> ${esc(a.concl.evidence)}</p>`:""}
+      ${a.concl.growth?`<p style="font-size:13px;margin-bottom:6px"><b>Growth:</b> ${esc(a.concl.growth)}</p>`:""}
+      ${a.concl.next?`<p style="font-size:13px;margin-bottom:6px"><b>Next Focus:</b> ${esc(a.concl.next)}</p>`:""}
+      ${a.concl.home?`<p style="font-size:13px;background:#FFFBEB;padding:9px;border-radius:8px"><b>💌 Home:</b> ${esc(a.concl.home)}</p>`:""}
+    </div>
+    <div style="display:flex;justify-content:space-around;margin-top:20px;font-size:12px;color:var(--muted)">
+      <div>Teacher: _____________<br><br>Date: _______</div>
+      <div>Parent: _____________<br><br>Date: _______</div>
+      <div>Principal: _____________<br><br>Date: _______</div>
+    </div>
+  </div>`;
+}
+async function weeklyRpt(stud, yr, mo, wi) {
+  const a = await fsGet("assessments", aKey(stud.id, yr, mo));
+  const cur = CUR[mo];
+  if (!a || !a.weeks) return `<div class="card"><div class="empty">No data.</div></div>`;
+  const wk = a.weeks[wi];
+  const st = wk.days.filter(d=>d.stamp==="Y").length;
+  return `<div class="card">
+    ${rptHdr(stud, `${cur.emoji} Weekly Report — ${cur.name} ${yr}, Week ${wi+1}`)}
+    <table class="tbl"><thead><tr><th>Day</th><th>Observation</th><th>Level</th><th>Stamp</th></tr></thead><tbody>
+    ${wk.days.map((d,i) => `<tr>
+      <td><b>${DAYS[i]}</b><br><span style="font-size:11px;color:var(--muted)">${esc(d.date)}</span></td>
+      <td>${esc(d.obs)||"—"}</td>
+      <td>${d.level?`<span class="lv ${d.level}">${LV[d.level].emoji}</span>`:"—"}</td>
+      <td>${d.stamp==="Y"?"⭐":"—"}</td>
+    </tr>`).join("")}
+    </tbody></table>
+    <div style="margin-top:12px;font-size:14px">
+      <b>Overall Level:</b> ${wk.level?`<span class="lv ${wk.level}">${LV[wk.level].emoji} ${LV[wk.level].label}</span>`:"—"}
+      &nbsp;·&nbsp; <b>Stamps:</b> ⭐${st}/5
+    </div>
+    ${wk.key?`<p style="font-size:13.5px;margin-top:9px"><b>Key Observation:</b> ${esc(wk.key)}</p>`:""}
+    ${wk.follow?`<p style="font-size:13.5px;margin-top:6px"><b>Follow-Up:</b> ${esc(wk.follow)}</p>`:""}
+  </div>`;
+}
+async function yearlyRpt(stud, yr) {
+  let cells = "", total = 0;
+  for (let m = 1; m <= 12; m++) {
+    const a = await fsGet("assessments", aKey(stud.id, yr, m));
+    const cur = CUR[m];
+    const lv = a && a.concl ? a.concl.level : "";
+    const st = a ? a.weeks.reduce((s,wk) => s+wk.days.filter(d=>d.stamp==="Y").length, 0) : 0;
+    if (lv) total += LV[lv].stamps;
+    cells += `<div style="border:2px solid ${lv?cur.color:"var(--border)"};border-radius:10px;padding:9px 7px;text-align:center;${lv?"background:"+cur.color+"18":""}">
+      <div style="font-family:'Baloo 2';font-weight:700;font-size:13px;color:${cur.color}">${cur.name.slice(0,3)}</div>
+      <div style="font-size:21px;margin:3px 0">${cur.emoji}</div>
+      <div style="font-size:11px;font-weight:800;color:${lv?(lv==="A"?"var(--ach-c)":lv==="D"?"var(--dev-c)":"var(--em-c)"):"var(--muted)"}">${lv?LV[lv].emoji+" "+LV[lv].label:"—"}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">⭐${st}/20</div>
+    </div>`;
+  }
+  return `<div class="card">
+    ${rptHdr(stud, `🎓 Yearly Character Report — ${yr}`)}
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px">${cells}</div>
+    <div style="background:var(--soft);padding:12px;border-radius:11px;font-family:'Baloo 2';font-weight:700;color:var(--navy)">
+      Total Passport Stamps: ${total}/36
+    </div>
+  </div>`;
+}
+
+/* =================================================================
+   STAMP CHART  (Class daily stamp chart + Yearly E-Card)
+================================================================= */
+
+/* ── Stamp chart data key ──────────────────────────────────── */
+const chartKey = (yr, mo) => `chart_${yr}_${mo}`;
+
+async function renderCards() {
+  loading("main");
+  const studs = await myStudents();
+  // Get all unique classes for filter
+  const classes = [...new Set(studs.map(s=>s.className||"").filter(Boolean))];
+
+  document.getElementById("main").innerHTML = `
+    <div class="ph"><h2>📅 Stamp Chart</h2>
+      <p>Daily stamp chart for the whole class · Tap a cell to stamp · Print for physical stamping</p></div>
+    <div class="card no-print">
+      <div class="g4">
+        <div><label class="lbl">Month</label>
+          <select class="inp" id="ch-m" onchange="loadChart()">
+            ${Object.keys(CUR).map(k=>`<option value="${k}" ${+k===SEL.month?"selected":""}>${CUR[k].emoji} ${CUR[k].name}</option>`).join("")}
+          </select></div>
+        <div><label class="lbl">Year</label>
+          <input class="inp" type="number" id="ch-y" value="${SEL.year}" onchange="loadChart()"></div>
+        <div><label class="lbl">Filter by Class</label>
+          <select class="inp" id="ch-cl" onchange="loadChart()">
+            <option value="">All Classes</option>
+            ${classes.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("")}
+          </select></div>
+        <div><label class="lbl">Stamp Symbol</label>
+          <select class="inp" id="ch-sym">
+            <option value="⭐">⭐ Star</option>
+            <option value="✅">✅ Tick</option>
+            <option value="🌟">🌟 Glow</option>
+            <option value="💛">💛 Heart</option>
+          </select></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn btn-navy" onclick="loadChart()">🔄 Refresh</button>
+        <button class="btn btn-amber" onclick="window.print()">🖨 Print Chart</button>
+        <button class="btn btn-green" onclick="showYearlyCards()">🎓 View Yearly E-Cards</button>
+      </div>
+    </div>
+    <div id="chartArea"></div>
+    <div id="eCardArea"></div>`;
+
+  if (studs.length) loadChart();
+}
+
+async function loadChart() {
+  const mo   = +document.getElementById("ch-m").value;
+  const yr   = +document.getElementById("ch-y").value;
+  const cl   = document.getElementById("ch-cl").value;
+  const area = document.getElementById("chartArea");
+  if (!area) return;
+  document.getElementById("eCardArea").innerHTML = "";
+  area.innerHTML = `<div class="spin" style="margin:30px auto;border-top-color:var(--navy)"></div>`;
+
+  const allStuds = await myStudents();
+  const studs = cl ? allStuds.filter(s=>(s.className||"")=== cl) : allStuds;
+  if (!studs.length) { area.innerHTML = `<div class="card"><div class="empty"><div class="ico">🧒</div>No students found.</div></div>`; return; }
+
+  const cur = CUR[mo];
+  const key = chartKey(yr, mo);
+  const saved = await fsGet("stampChart", key) || {};
+
+  // Build weekday dates for this month
+  const dates = [];
+  const d = new Date(yr, mo-1, 1);
+  while (d.getMonth() === mo-1) {
+    if (d.getDay() !== 0 && d.getDay() !== 6) {
+      dates.push(new Date(d));
+    }
+    d.setDate(d.getDate()+1);
+  }
+  const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const sym = document.getElementById("ch-sym") ? document.getElementById("ch-sym").value : "⭐";
+
+  // Count stamps per student
+  const totals = {};
+  studs.forEach(s => {
+    totals[s.id] = dates.filter(dt => saved[s.id+"_"+dt.getDate()]).length;
+  });
+
+  // Render chart
+  const colW = Math.max(34, Math.floor(560 / dates.length));
+  let thead = `<tr>
+    <th style="min-width:140px;position:sticky;left:0;z-index:2;background:var(--navy)">Student</th>
+    ${dates.map(dt=>`<th style="min-width:${colW}px;text-align:center;font-size:11px;padding:5px 2px">
+      <div>${dayNames[dt.getDay()]}</div>
+      <div style="font-size:13px;font-weight:800">${dt.getDate()}</div>
+    </th>`).join("")}
+    <th style="min-width:52px;text-align:center;background:#254e8a">Total</th>
+  </tr>`;
+
+  let tbody = studs.map((s,si) => {
+    const cells = dates.map(dt => {
+      const ckey = s.id+"_"+dt.getDate();
+      const stamped = !!saved[ckey];
+      return `<td style="text-align:center;padding:4px 2px;background:${si%2===0?"#fff":"#FAFAF8"}">
+        <button onclick="toggleStamp('${s.id}',${dt.getDate()},${mo},${yr})"
+          style="width:${colW-6}px;height:30px;border-radius:7px;border:1.5px solid ${stamped?"var(--ach-c)":"var(--border)"};
+          background:${stamped?"var(--ach-bg)":"transparent"};cursor:pointer;font-size:16px;
+          display:flex;align-items:center;justify-content:center;margin:auto">
+          ${stamped ? sym : ""}
+        </button>
+      </td>`;
+    }).join("");
+    const total = totals[s.id];
+    return `<tr>
+      <td style="font-weight:700;font-size:13px;padding:6px 10px;background:${si%2===0?"#fff":"#FAFAF8"};position:sticky;left:0;z-index:1;border-right:2px solid var(--border)">
+        ${esc(s.name)}<div style="font-size:10px;color:var(--muted);font-weight:400">${esc(s.className||"")}</div>
+      </td>
+      ${cells}
+      <td style="text-align:center;font-family:'Baloo 2';font-weight:800;font-size:15px;color:var(--navy);background:${si%2===0?"#EEF4FF":"#E4EEFF"}">
+        ${total}
+      </td>
+    </tr>`;
+  }).join("");
+
+  const target = cur.chars[studs[0]?.ageGroup||"4"];
+  area.innerHTML = `
+    <div class="card" style="padding:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+        <div>
+          <div style="font-family:'Baloo 2';font-size:18px;font-weight:800;color:var(--navy)">${cur.emoji} ${cur.name} ${yr} — Stamp Chart</div>
+          <div style="font-size:13px;color:var(--muted)">🎯 ${esc(target)} · ${studs.length} students · ${dates.length} school days</div>
+        </div>
+        <div style="font-size:13px;color:var(--muted)">Tap a cell to add/remove stamp · Saves automatically</div>
+      </div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table style="border-collapse:collapse;width:100%;min-width:${140+dates.length*colW+52}px">
+          <thead style="background:var(--navy);color:#fff">${thead}</thead>
+          <tbody>${tbody}</tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--muted)">
+        💡 Print this page for a physical chart. Teacher marks stamps by hand in the printed cells.
+      </div>
+    </div>`;
+
+  // Store dates for toggleStamp
+  window._chartDates = dates;
+  window._chartMo = mo;
+  window._chartYr = yr;
+}
+
+// Toggle stamp — saves to Firebase
+window._stampData = {};
+async function toggleStamp(sid, dateNum, mo, yr) {
+  const key = chartKey(yr, mo);
+  const saved = await fsGet("stampChart", key) || {};
+  const ckey = sid+"_"+dateNum;
+  if (saved[ckey]) delete saved[ckey];
+  else saved[ckey] = true;
+  await fsSet("stampChart", key, saved);
+  loadChart();
+}
+
+async function showYearlyCards() {
+  const area = document.getElementById("eCardArea");
+  if (!area) return;
+  document.getElementById("chartArea").innerHTML = "";
+  area.innerHTML = `<div class="spin" style="margin:20px auto;border-top-color:var(--navy)"></div>`;
+  const yr = +document.getElementById("ch-y").value;
+  const cl = document.getElementById("ch-cl").value;
+  const allStuds = await myStudents();
+  const studs = cl ? allStuds.filter(s=>(s.className||"")=== cl) : allStuds;
+  if (!studs.length) { area.innerHTML=""; return; }
+  const cards = [];
+  for (const stud of studs) {
+    cards.push(await genYearlyECard(stud, yr));
+  }
+  area.innerHTML = `<div class="no-print" style="text-align:center;margin-bottom:12px;font-weight:700;color:var(--navy)">
+    📄 ${studs.length} Yearly E-Cards — Click 🖨 Print to save as PDF (one card per student)
+  </div>` + cards.join('<div style="page-break-after:always;margin-bottom:20px"></div>');
+}
+
+async function genYearlyECard(stud, yr) {
+  let cells = "", total = 0, achieved = 0;
+  for (let m = 1; m <= 12; m++) {
+    const a = await fsGet("assessments", aKey(stud.id, yr, m));
+    const cur = CUR[m];
+    const lv = a && a.concl ? a.concl.level : "";
+    const st = a ? a.weeks.reduce((s,wk)=>s+wk.days.filter(d=>d.stamp==="Y").length,0) : 0;
+    if (lv) { total += LV[lv].stamps; if(lv==="A") achieved++; }
+    cells += `<div style="border:2px solid ${lv?cur.color:"var(--border)"};border-radius:11px;padding:9px 7px;text-align:center;background:${lv?cur.color+"14":"#FAFAFA"}">
+      <div style="font-family:'Baloo 2';font-weight:700;font-size:12px;color:${cur.color}">${cur.name.slice(0,3)}</div>
+      <div style="font-size:20px;margin:3px 0">${cur.emoji}</div>
+      <div style="font-size:11px;font-weight:800;color:${lv?(lv==="A"?"var(--ach-c)":lv==="D"?"var(--dev-c)":"var(--em-c)"):"#CCC"}">
+        ${lv ? LV[lv].emoji.repeat(LV[lv].stamps) : "—"}
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">⭐${st}</div>
+    </div>`;
+  }
+  let tier = "Junior Heart", tierEmoji = "🌱";
+  if (total >= 25) { tier = "Little Big Heart"; tierEmoji = "🌟"; }
+  else if (total >= 13) { tier = "Growing Heart"; tierEmoji = "🌿"; }
+
+  return `<div class="award-card" style="max-width:680px;margin-bottom:20px">
+    <div style="text-align:center;padding-bottom:14px;border-bottom:3px dashed #DDD4C4;margin-bottom:14px">
+      <div style="font-size:36px">🌟💛🌟</div>
+      <div style="font-family:'Baloo 2';font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Little Big Hearts International & Private Preschool · Kulai, Johor</div>
+      <div style="font-family:'Baloo 2';font-size:22px;font-weight:800;color:var(--navy)">Character Growth Achievement</div>
+      <div style="font-size:13px;color:var(--muted)">Academic Year ${yr}</div>
+    </div>
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-family:'Baloo 2';font-size:27px;font-weight:800;color:var(--navy)">${esc(stud.name)}</div>
+      <div style="font-size:13px;color:var(--muted)">${esc(stud.className||"")} · ${AGE_LABEL[stud.ageGroup]}</div>
+    </div>
+    <div style="text-align:center;background:var(--navy);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="font-size:12px;color:rgba(255,255,255,.8);margin-bottom:4px">This year's award</div>
+      <div style="font-family:'Baloo 2';font-size:28px;font-weight:800;color:#fff">${tierEmoji} ${tier}</div>
+      <div style="display:flex;justify-content:center;gap:22px;margin-top:10px">
+        <div style="text-align:center"><div style="font-family:'Baloo 2';font-size:26px;font-weight:800;color:#FCD34D">${total}</div><div style="font-size:11px;color:rgba(255,255,255,.75)">Total Stamps</div></div>
+        <div style="text-align:center"><div style="font-family:'Baloo 2';font-size:26px;font-weight:800;color:#6EE7B7">${achieved}</div><div style="font-size:11px;color:rgba(255,255,255,.75)">Months Achieved</div></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">${cells}</div>
+    <div style="display:flex;justify-content:center;gap:12px;font-size:11.5px;color:var(--muted);margin-bottom:14px;flex-wrap:wrap">
+      <span style="background:var(--em-bg);color:var(--em-c);padding:4px 10px;border-radius:20px;font-weight:800">🌱 Junior Heart 1–12</span>
+      <span style="background:var(--dev-bg);color:var(--dev-c);padding:4px 10px;border-radius:20px;font-weight:800">🌿 Growing Heart 13–24</span>
+      <span style="background:var(--ach-bg);color:var(--ach-c);padding:4px 10px;border-radius:20px;font-weight:800">🌟 Little Big Heart 25–36</span>
+    </div>
+    <div style="display:flex;justify-content:space-around;padding-top:12px;border-top:2px dashed var(--border);font-size:12px;color:var(--muted)">
+      <div style="text-align:center"><div style="border-bottom:1px solid #DDD;width:110px;margin:0 auto 20px"></div>Class Teacher</div>
+      <div style="text-align:center"><div style="border-bottom:1px solid #DDD;width:110px;margin:0 auto 20px"></div>Principal</div>
+    </div>
+    <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--muted)">Issued by Little Big Hearts International & Private Preschool · Kulai, Johor · ${yr}</div>
+  </div>`;
+}
+
+
+/* =================================================================
+   ACCOUNTS
+================================================================= */
+async function renderAccounts() {
+  if (USER.role !== "admin") { go("dashboard"); return; }
+  loading("main");
+  const accounts = await fsAll("accounts");
+  const allStudents = await fsAll("students");
+
+  // All unique classes in the system
+  const allClasses = [...new Set(allStudents.map(s=>s.className||"").filter(Boolean))].sort();
+
+  // Build class summary per teacher
+  const teacherClasses = {};
+  accounts.filter(a=>a.role==="teacher").forEach(t => {
+    const myStuds = allStudents.filter(s => getTeachersOf(s).includes(t.username));
+    const classes = [...new Set(myStuds.map(s=>s.className||"").filter(Boolean))].sort();
+    teacherClasses[t.username] = {count: myStuds.length, classes};
+  });
+
+  document.getElementById("main").innerHTML = `
+    <div class="ph"><h2>👥 Staff Accounts</h2>
+      <p>Create teacher accounts, set passwords, and assign classes.</p></div>
+
+    <div class="card"><h3>➕ Create Teacher Account</h3>
+      <div class="g4">
+        <div><label class="lbl">Full Name</label>
+          <input class="inp" id="an" placeholder="e.g. Ms Aisha"></div>
+        <div><label class="lbl">Username</label>
+          <input class="inp" id="au" placeholder="e.g. aisha (no spaces)"></div>
+        <div><label class="lbl">Password</label>
+          <input class="inp" id="ap" placeholder="Set a password"></div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="btn btn-green btn-block" onclick="addAcc()">Create Account</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card"><h3>📋 Teacher Accounts &amp; Class Assignments</h3>
+      <p style="font-size:13px;color:var(--muted);margin:-6px 0 14px">
+        Click <b>📚 Assign Classes</b> to give a teacher access to all students in selected classes at once.
+      </p>
+      <div style="overflow-x:auto"><table class="tbl"><thead><tr>
+        <th>Name</th><th>Username</th><th>Assigned Classes</th><th>Password</th><th></th>
+      </tr></thead><tbody>
+      ${accounts.filter(a=>a.role==="teacher").map(a => {
+        const tc = teacherClasses[a.username] || {count:0, classes:[]};
+        const classChips = tc.classes.length
+          ? tc.classes.map(c=>`<span style="display:inline-block;background:var(--soft);color:var(--navy);
+              padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700;margin:2px">${esc(c)}</span>`).join("")
+            + `<span style="font-size:11px;color:var(--muted);margin-left:4px">(${tc.count} students)</span>`
+          : `<span style="font-size:12px;color:var(--rose);font-weight:700">No classes assigned yet</span>`;
+        return `<tr>
+          <td><b>${esc(a.name)}</b></td>
+          <td><code style="background:#F0F0F0;padding:2px 6px;border-radius:4px;font-size:13px">${esc(a.username)}</code></td>
+          <td>${classChips}</td>
+          <td>
+            <span style="font-family:monospace;font-size:12.5px">${esc(a.pwd)}</span>
+            <button class="btn btn-ghost btn-sm" style="margin-left:5px"
+              onclick="chgPwd('${esc(a.username)}','${esc(a.name)}')">change</button>
+          </td>
+          <td style="text-align:right;white-space:nowrap">
+            <button class="btn btn-blue btn-sm" onclick="assignClasses('${esc(a.username)}','${esc(a.name)}')">
+              📚 Assign Classes
+            </button>
+            <button class="btn btn-danger btn-sm" style="margin-left:5px"
+              onclick="delAcc('${esc(a.username)}')">🗑</button>
+          </td>
+        </tr>`;
+      }).join("")}
+      ${accounts.filter(a=>a.role==="admin").map(a=>`<tr>
+        <td><b>${esc(a.name)}</b></td>
+        <td><code style="background:#EDE0F7;padding:2px 6px;border-radius:4px;font-size:13px">${esc(a.username)}</code></td>
+        <td><span class="role-tag admin" style="display:inline-block">admin</span></td>
+        <td>
+          <span style="font-family:monospace;font-size:12.5px">${esc(a.pwd)}</span>
+          <button class="btn btn-ghost btn-sm" style="margin-left:5px"
+            onclick="chgPwd('${esc(a.username)}','${esc(a.name)}')">change</button>
+        </td>
+        <td></td>
+      </tr>`).join("")}
+      </tbody></table></div>
+    </div>`;
+}
+
+/* ── Assign all classes to a teacher in one step ── */
+async function assignClasses(username, teacherName) {
+  const allStudents = await fsAll("students");
+  const allClasses = [...new Set(allStudents.map(s=>s.className||"").filter(Boolean))].sort();
+  if (!allClasses.length) {
+    toast("No classes found — add students first","err");
+    return;
+  }
+  // Current classes this teacher is assigned to
+  const currentStuds = allStudents.filter(s => getTeachersOf(s).includes(username));
+  const currentClasses = [...new Set(currentStuds.map(s=>s.className||"").filter(Boolean))];
+  window._teacherSels["cls"] = [...currentClasses];
+
+  setModal(`
+    <div class="modal-hdr">
+      <div class="ai-ico" style="background:linear-gradient(135deg,var(--teal),var(--blue))">📚</div>
+      <div>
+        <h3>Assign Classes — ${esc(teacherName)}</h3>
+        <div style="font-size:12px;color:var(--muted)">Tick all classes this teacher should assess</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--soft);border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:13px;color:var(--ink)">
+        💡 Ticking a class adds this teacher to <b>every student</b> in that class.<br>
+        Unticking removes this teacher from all students in that class.
+      </div>
+      <label class="lbl" style="margin-bottom:9px">Available Classes:</label>
+      <div id="cls-list">
+        ${allClasses.map(cls => {
+          const isCurrent = currentClasses.includes(cls);
+          const studCount = allStudents.filter(s=>(s.className||"")=== cls).length;
+          return `<label style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+            border:2px solid ${isCurrent?"var(--ach-c)":"var(--border)"};border-radius:11px;
+            cursor:pointer;margin-bottom:8px;font-weight:700;font-size:14px;
+            background:${isCurrent?"var(--achb)":"#fff"};transition:.14s"
+            onclick="toggleClassChk('${esc(cls)}',this)">
+            <div id="cls_chk_${esc(cls).replace(/\s/g,'_')}" style="width:22px;height:22px;border-radius:7px;
+              flex-shrink:0;border:2px solid ${isCurrent?"var(--ach-c)":"var(--border)"};
+              background:${isCurrent?"var(--ach-c)":"#fff"};display:flex;align-items:center;
+              justify-content:center;font-size:13px;font-weight:800;color:#fff">
+              ${isCurrent?"✓":""}
+            </div>
+            <div>
+              <div>${esc(cls)}</div>
+              <div style="font-size:11.5px;font-weight:500;color:var(--muted)">${studCount} student${studCount!==1?"s":""}</div>
+            </div>
+            ${isCurrent?`<span style="margin-left:auto;font-size:11px;font-weight:700;color:var(--ach-c)">Currently assigned</span>`:""}
+          </label>`;
+        }).join("")}
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn btn-green" onclick="saveClassAssignment('${esc(username)}')">
+          💾 Save Class Assignments
+        </button>
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>`);
+}
+
+function toggleClassChk(cls, labelEl) {
+  if (!window._teacherSels["cls"]) window._teacherSels["cls"] = [];
+  const arr = window._teacherSels["cls"];
+  const idx = arr.indexOf(cls);
+  const safeId = "cls_chk_" + cls.replace(/\s/g,"_");
+  const chkEl = document.getElementById(safeId);
+  if (idx === -1) {
+    arr.push(cls);
+    if (chkEl) { chkEl.textContent="✓"; chkEl.style.background="var(--ach-c)"; chkEl.style.borderColor="var(--ach-c)"; }
+    labelEl.style.background = "var(--achb)";
+    labelEl.style.borderColor = "var(--ach-c)";
+  } else {
+    arr.splice(idx, 1);
+    if (chkEl) { chkEl.textContent=""; chkEl.style.background="#fff"; chkEl.style.borderColor="var(--border)"; }
+    labelEl.style.background = "#fff";
+    labelEl.style.borderColor = "var(--border)";
+  }
+}
+
+async function saveClassAssignment(username) {
+  const selectedClasses = window._teacherSels["cls"] || [];
+  const allStudents = await fsAll("students");
+  const btn = document.querySelector("#mroot .btn-green");
+  if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
+
+  let saved = 0, failed = 0;
+  for (const stud of allStudents) {
+    const cls = stud.className || "";
+    let teachers = [...getTeachersOf(stud)];
+    const shouldHave = selectedClasses.includes(cls);
+    const hasNow = teachers.includes(username);
+
+    if (shouldHave && !hasNow) {
+      // Add teacher to this student
+      teachers.push(username);
+      const ok = await fsSet("students", stud.id, {teachers});
+      ok ? saved++ : failed++;
+    } else if (!shouldHave && hasNow) {
+      // Remove teacher from this student
+      teachers = teachers.filter(u => u !== username);
+      const ok = await fsSet("students", stud.id, {teachers});
+      ok ? saved++ : failed++;
+    }
+  }
+
+  closeModal();
+  if (failed === 0) {
+    toast(`Classes assigned ✓ — ${saved} student${saved!==1?"s":""} updated`, "ok");
+  } else {
+    toast(`Done with ${failed} error(s) — check connection`, "err");
+  }
+  renderAccounts();
+}
+
+async function addAcc() {
+  const name     = document.getElementById("an").value.trim();
+  const username = document.getElementById("au").value.trim().toLowerCase().replace(/\s+/g,"_");
+  const pwd      = document.getElementById("ap").value;
+  if (!name || !username || !pwd) { toast("Fill all fields","err"); return; }
+  if (pwd.length < 4) { toast("Password too short (min 4 characters)","err"); return; }
+  const exists = await fsGet("accounts", username);
+  if (exists) { toast("Username already exists","err"); return; }
+  const ok = await fsSet("accounts", username, {username, pwd, role:"teacher", name,
+    created: new Date().toISOString()});
+  if (ok) { toast("Account created ✓ — now click 📚 Assign Classes to set up this teacher","ok"); renderAccounts(); }
+  else toast("Save failed","err");
+}
+async function delAcc(u) {
+  if (!confirm("Delete account for " + u + "?\n\nNote: this teacher will be removed from all student assignments.")) return;
+  // Remove from all students first
+  const allStudents = await fsAll("students");
+  for (const stud of allStudents) {
+    const teachers = getTeachersOf(stud).filter(t => t !== u);
+    if (teachers.length !== getTeachersOf(stud).length) {
+      await fsSet("students", stud.id, {teachers});
+    }
+  }
+  await fsDel("accounts", u);
+  toast("Account deleted","ok"); renderAccounts();
+}
+async function chgPwd(u, name) {
+  const np = prompt("New password for " + name + ":");
+  if (!np || !np.trim()) return;
+  if (np.trim().length < 4) { toast("Password too short","err"); return; }
+  await fsSet("accounts", u, {pwd: np.trim()});
+  toast("Password updated ✓","ok"); renderAccounts();
+}
+
+/* =================================================================
+   KEYBOARD + BOOT
+================================================================= */
+document.addEventListener("keydown", e => {
+  if (e.target.id === "li-u" && e.key === "Enter") document.getElementById("li-p").focus();
+  if (e.target.id === "li-p" && e.key === "Enter") doLogin();
+});
+boot();
+</script>
+</body>
+</html>
